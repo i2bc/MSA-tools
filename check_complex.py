@@ -10,8 +10,8 @@ import pdb2cif
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.mmcifio import MMCIFIO
 
-RATE4SITE = "../tools/bin/rate4site"
-MAFFT = "../tools/bin/mafft"
+RATE4SITE = "rate4site"
+MAFFT = "mafft"
 
 
 class r4s_multi:

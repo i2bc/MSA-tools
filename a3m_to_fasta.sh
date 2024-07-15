@@ -1,7 +1,7 @@
 #! /bin/sh
 
 OPTSTRING=":i:o:"
-pathReformat=~/programmation/stage/script_msa_tools/hhsuite/scripts/reformat.pl
+pathReformat=/data/work/I2BC/hugo.pointier/msa_tools/tools/reformat.pl
 
 while getopts ${OPTSTRING} opt; do
   case "${opt}" in

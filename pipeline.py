@@ -28,11 +28,12 @@ input_msa = args.m
 # input_msa = "complex/2_HBA_2_HBB_HUMAN.a3m"
 
 structure = args.s
-A3M_CONVERTER = "~/programmation/stage/script_msa_tools/script/a3m_to_fasta.sh"
+A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
 
 
 def check_msa(input):
     """check if input is fasta or a3m and convert it if it is the case"""
+    global dir_temp
     fasta_msa = ""
     valid_extension = [".fasta", ".a3m"]
     if Path(input).is_file() and Path(input).suffix in valid_extension:
@@ -62,7 +63,7 @@ hh_filter = os.path.join(str(dir_temp), "hh_filter.fasta")
 filtered_msa = os.path.join(str(dir_temp), "filtered.fasta")
 output = os.path.join(dir_result, "output")
 fasta_msa = check_msa(input_msa)
-filter_fasta(fasta_msa, hh_filter, filtered_msa, args.i, args.f)
+filter_fasta(fasta_msa, hh_filter, filtered_msa, float(args.i), float(args.f))
 
 obj = check_complex.r4s_multi(
     msa_input=filtered_msa,
