@@ -155,7 +155,7 @@ class r4s_multi:
             with open(fasta, "w") as f:
                 for header in self.fasta_sequences[index]["header"]:
                     f.write(
-                        f"> {header}\n{os.path.join(self.dir_temp, self.fasta_sequences[index][header]['sequence'])}\n"
+                        f"> {header}\n{self.fasta_sequences[index][header]['sequence']}\n"
                     )
             count += 1
 
