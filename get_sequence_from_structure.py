@@ -28,7 +28,7 @@ class get_sequence_from_structure:
             converted_structure_file = self.prefix_structure_file + ".cif"
             pdb2cif.convert2cif(self.structure_file, converted_structure_file)
             self.structure_file = converted_structure_file
-            self.write_fasta()
+        self.write_fasta()
 
     def check_structure_file(self):
         valid_extensions = [".pdb", ".cif"]
