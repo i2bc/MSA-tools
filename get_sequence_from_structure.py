@@ -109,11 +109,9 @@ class get_sequence_from_structure:
                 name_res = residue.get_resname()
                 if name_res in one_letter:
                     amino_acid = one_letter[name_res]
-                else:
-                    amino_acid = "x"
-                sequence += amino_acid
-                dic_sequence[name_chain][residue_number] = amino_acid
-                dic_sequence[name_chain]["order"].append(residue_number)
+                    sequence += amino_acid
+                    dic_sequence[name_chain][residue_number] = amino_acid
+                    dic_sequence[name_chain]["order"].append(residue_number)
             dic_sequence[name_chain]["sequence"] = sequence
 
         return dic_sequence
@@ -123,6 +121,8 @@ class get_sequence_from_structure:
         sequence = ""
         flag_first = True
         for chain in dic_sequence["chain"]:
+            if not dic_sequence[chain]["sequence"]:
+                continue
             if flag_first:
                 sequence = dic_sequence[chain]["sequence"]
                 flag_first = False
