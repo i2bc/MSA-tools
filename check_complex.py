@@ -8,6 +8,7 @@ import logging
 import tempfile
 import pdb2cif
 from Bio.PDB.MMCIFParser import MMCIFParser
+from Bio.PDB.MMCIF2Dict import MMCIF2Dict
 from Bio.PDB.mmcifio import MMCIFIO
 
 RATE4SITE = "rate4site"
@@ -81,15 +82,10 @@ class r4s_multi:
 
     def check_structure_file(self):
         valid_extensions = [".pdb", ".cif"]
-        if (
-            Path(self.structure_file).is_file()
-            and Path(self.structure_file).suffix in valid_extensions
-        ):
+        if Path(self.structure_file).is_file() and Path(self.structure_file).suffix in valid_extensions:
             self.structure_file_type = Path(self.structure_file).suffix
         else:
-            self.logger.error(
-                "wrong structure file type, should be either .pdb or .cif"
-            )
+            self.logger.error("wrong structure file type, should be either .pdb or .cif")
             sys.exit(1)
 
     def check_fasta(self):
@@ -108,9 +104,7 @@ class r4s_multi:
                 number_of_sequences = number_of_sequences.split(",")
                 self.length_number_couple = []
                 for index, length in enumerate(length_sequences):
-                    self.length_number_couple.append(
-                        (length, number_of_sequences[index])
-                    )
+                    self.length_number_couple.append((length, number_of_sequences[index]))
 
     def get_subsequence(self):
         """get all the subsequence from a fasta"""
@@ -139,12 +133,8 @@ class r4s_multi:
                             sequence = stripped_line[current_start_position:length]
                             self.fasta_sequences[index]["header"].append(current_header)
                             self.fasta_sequences[index][current_header] = {}
-                            self.fasta_sequences[index][current_header][
-                                "sequence"
-                            ] = sequence
-                            self.fasta_sequences[index][current_header][
-                                "occurrence"
-                            ] = tup[1]
+                            self.fasta_sequences[index][current_header]["sequence"] = sequence
+                            self.fasta_sequences[index][current_header]["occurrence"] = tup[1]
                 current_start_position = length
 
     def create_fasta(self):
@@ -154,9 +144,7 @@ class r4s_multi:
             self.fasta_sequences[index]["fasta"] = fasta
             with open(fasta, "w") as f:
                 for header in self.fasta_sequences[index]["header"]:
-                    f.write(
-                        f"> {header}\n{self.fasta_sequences[index][header]['sequence']}\n"
-                    )
+                    f.write(f"> {header}\n{self.fasta_sequences[index][header]['sequence']}\n")
             count += 1
 
     def computeR4S(self, msa_file, result):
@@ -192,9 +180,9 @@ class r4s_multi:
             "percentage_no_gap": score["percentage_no_gap"],
         }
         if self.complex:
-            self.dic_score[index]["occurrence"] = self.fasta_sequences[index][
-                self.fasta_sequences[index]["header"][0]
-            ]["occurrence"]
+            self.dic_score[index]["occurrence"] = self.fasta_sequences[index][self.fasta_sequences[index]["header"][0]][
+                "occurrence"
+            ]
         else:
             self.dic_score[index]["occurrence"] = 1
 
@@ -202,9 +190,7 @@ class r4s_multi:
         conservation_data = {}
         conservation_data["diverged"] = {}
         conservation_data["conserved"] = {}
-        conservation_data["percentage_no_gap"] = self.dic_score[index][
-            "percentage_no_gap"
-        ]
+        conservation_data["percentage_no_gap"] = self.dic_score[index]["percentage_no_gap"]
         conservation_data["no_gap"] = {}
         conservation_data["order"] = {}
         conservation_data["bin"] = {}
@@ -216,11 +202,7 @@ class r4s_multi:
             MAX_SCORE = 99.0
             MIN_SCORE = 1.0
 
-            bfact = MAX_SCORE - (
-                MAX_SCORE
-                * (self.dic_score[index]["score"][res] - bfact_min)
-                / amplitude
-            )
+            bfact = MAX_SCORE - (MAX_SCORE * (self.dic_score[index]["score"][res] - bfact_min) / amplitude)
 
             if bfact > MAX_SCORE:
                 conservation_data["bin"][res] = MAX_SCORE
@@ -248,9 +230,7 @@ class r4s_multi:
 
     def extract_sequence_cif(self):
         parser = MMCIFParser()
-        self.structure = parser.get_structure(
-            structure_id="", filename=self.structure_file
-        )
+        self.structure = parser.get_structure(structure_id="", filename=self.structure_file)
 
         one_letter = {}
         one_letter["ALA"] = "A"
@@ -345,12 +325,8 @@ class r4s_multi:
                 command = MAFFT + f" --auto {input_mafft.name} > {output_mafft.name}"
                 os.system(command)
                 self.mafft_result[index][chain] = {}
-                self.mafft_result[index][chain]["index_cif"] = pdb_sequences[chain][
-                    "order"
-                ]
-                self.mafft_result[index][chain]["sequences"] = (
-                    self.get_sequence_from_alignment(output_mafft.name)
-                )
+                self.mafft_result[index][chain]["index_cif"] = pdb_sequences[chain]["order"]
+                self.mafft_result[index][chain]["sequences"] = self.get_sequence_from_alignment(output_mafft.name)
         self.compare_mafft_alignment()
 
     def compare_mafft_alignment(self):
@@ -416,12 +392,8 @@ class r4s_multi:
         return sequences
 
     def align_pdb_r4s(self, index, occurrence, chain):
-        seq_r4s = self.mafft_result[index][chain]["sequences"][
-            self.mafft_result[index][chain]["sequences"]["order"][0]
-        ]
-        seq_cif = self.mafft_result[index][chain]["sequences"][
-            self.mafft_result[index][chain]["sequences"]["order"][1]
-        ]
+        seq_r4s = self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][0]]
+        seq_cif = self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][1]]
         index_cif = self.mafft_result[index][chain]["index_cif"]
 
         ite_index = 0  # iterator of index_pdb (true number in the pdb file)
@@ -443,21 +415,17 @@ class r4s_multi:
                 ite_index += 1  # we go to the next index
 
                 if sr4s != "-":
-                    r4s_value_correspondence["bin"][cur_index_cif] = (
-                        self.conservation_data[index]["bin"][str(ite_r4s)]
-                    )
-                    r4s_value_correspondence["conserved"][cur_index_cif] = (
-                        self.conservation_data[index]["conserved"][str(ite_r4s)]
-                    )
-                    r4s_value_correspondence["diverged"][cur_index_cif] = (
-                        self.conservation_data[index]["diverged"][str(ite_r4s)]
-                    )
-                    r4s_value_correspondence["percentage_no_gap"][cur_index_cif] = (
-                        self.conservation_data[index]["percentage_no_gap"][str(ite_r4s)]
-                    )
-                    r4s_value_correspondence["no_gap"][cur_index_cif] = (
-                        self.conservation_data[index]["no_gap"][str(ite_r4s)]
-                    )
+                    r4s_value_correspondence["bin"][cur_index_cif] = self.conservation_data[index]["bin"][str(ite_r4s)]
+                    r4s_value_correspondence["conserved"][cur_index_cif] = self.conservation_data[index]["conserved"][
+                        str(ite_r4s)
+                    ]
+                    r4s_value_correspondence["diverged"][cur_index_cif] = self.conservation_data[index]["diverged"][
+                        str(ite_r4s)
+                    ]
+                    r4s_value_correspondence["percentage_no_gap"][cur_index_cif] = self.conservation_data[index][
+                        "percentage_no_gap"
+                    ][str(ite_r4s)]
+                    r4s_value_correspondence["no_gap"][cur_index_cif] = self.conservation_data[index]["no_gap"][str(ite_r4s)]
                     r4s_value_correspondence["order"].append(cur_index_cif)
 
                     ite_r4s += 1
@@ -478,28 +446,25 @@ class r4s_multi:
         self.test[index][occurrence][chain] = r4s_value_correspondence
 
     def create_cif_converge_diverge_r4s(self):
-        with open(self.output + ".cif", "w"):
-            for residue in self.structure.get_residues():
-                for atom in residue.get_atoms():
-                    atom.set_occupancy(0)
+        for residue in self.structure.get_residues():
+            for atom in residue.get_atoms():
+                atom.set_occupancy(0)
 
-            for index in self.test:
-                for occurrence in self.test[index]:
-                    for chain in self.test[index][occurrence]:
-                        struct_chain = self.structure[0][chain]
-                        for residue in struct_chain.get_residues():
-                            residue_number = residue.get_id()[1]
-                            if (
-                                residue_number
-                                in self.test[index][occurrence][chain]["bin"]
-                            ):
-                                for atom in residue.get_atoms():
-                                    atom.set_occupancy(
-                                        self.test[index][occurrence][chain]["bin"][
-                                            residue_number
-                                        ]
-                                    )
+        for index in self.test:
+            for occurrence in self.test[index]:
+                for chain in self.test[index][occurrence]:
+                    struct_chain = self.structure[0][chain]
+                    for residue in struct_chain.get_residues():
+                        residue_number = residue.get_id()[1]
+                        if residue_number in self.test[index][occurrence][chain]["bin"]:
+                            for atom in residue.get_atoms():
+                                atom.set_occupancy(self.test[index][occurrence][chain]["bin"][residue_number])
 
+        cif_output = self.output + ".cif"
         io = MMCIFIO()
         io.set_structure(self.structure)
-        io.save(self.output + ".cif")
+        io.save(cif_output)
+        mmcif_dict = MMCIF2Dict(cif_output)
+        mmcif_dict["_atom_site.label_asym_id"] = mmcif_dict["_atom_site.auth_asym_id"]
+        io.set_dict(mmcif_dict)
+        io.save(cif_output)
