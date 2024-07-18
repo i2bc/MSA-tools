@@ -19,8 +19,8 @@ dir_zip.mkdir(parents=True, exist_ok=True)
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", required=True)
 parser.add_argument("-s", required=True)
-parser.add_argument("-i", required=False)
-parser.add_argument("-f", required=False)
+parser.add_argument("-i", required=True)
+parser.add_argument("-f", required=True)
 
 args = parser.parse_args()
 
@@ -63,7 +63,7 @@ hh_filter = os.path.join(str(dir_temp), "hh_filter.fasta")
 filtered_msa = os.path.join(str(dir_temp), "filtered.fasta")
 output = os.path.join(dir_result, "output")
 fasta_msa = check_msa(input_msa)
-filter_fasta(fasta_msa, hh_filter, filtered_msa, float(args.i), float(args.f))
+filter_fasta(fasta_msa, hh_filter, filtered_msa, int(args.i), int(args.f))
 
 obj = check_complex.r4s_multi(
     msa_input=filtered_msa,

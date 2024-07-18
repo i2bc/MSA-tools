@@ -14,6 +14,10 @@ from Bio.PDB.mmcifio import MMCIFIO
 RATE4SITE = "rate4site"
 MAFFT = "mafft"
 
+# Temporary
+# RATE4SITE = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/rate4site"
+# MAFFT = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/mafft"
+
 
 class r4s_multi:
     def __init__(
@@ -355,8 +359,9 @@ class r4s_multi:
                         percentage["index"] = index
                         percentage["chain"] = chain
                         percentage["occurrence"] = occurrence
-                self.link_sequence_chain.append(percentage)
-                chains.remove(percentage["chain"])
+                if percentage["max"] > 75:
+                    self.link_sequence_chain.append(percentage)
+                    chains.remove(percentage["chain"])
 
     def compare_sequences(self, seq1, seq2):
         if len(seq1) != len(seq2):
@@ -464,7 +469,8 @@ class r4s_multi:
         io = MMCIFIO()
         io.set_structure(self.structure)
         io.save(cif_output)
-        mmcif_dict = MMCIF2Dict(cif_output)
-        mmcif_dict["_atom_site.label_asym_id"] = mmcif_dict["_atom_site.auth_asym_id"]
-        io.set_dict(mmcif_dict)
-        io.save(cif_output)
+        temp_dic = io.dic
+        if "_atom_site.label_asym_id" in io.dic:
+            temp_dic["_atom_site.label_asym_id"] = temp_dic["_atom_site.auth_asym_id"]
+            io.set_dict(temp_dic)
+            io.save(cif_output)
