@@ -2,6 +2,7 @@
 
 import os
 
+HHFILTER = "hhfilter"
 HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
 
 

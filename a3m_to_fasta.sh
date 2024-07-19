@@ -2,7 +2,7 @@
 
 OPTSTRING=":i:o:"
 pathReformat=/data/work/I2BC/hugo.pointier/msa_tools/tools/reformat.pl
-
+pathReformat=~/programmation/stage/script_msa_tools/hhsuite/scripts/reformat.pl
 while getopts ${OPTSTRING} opt; do
   case "${opt}" in
     i) 

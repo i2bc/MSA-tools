@@ -16,11 +16,23 @@ dir_result.mkdir(parents=True, exist_ok=True)
 dir_zip = Path("zip")
 dir_zip.mkdir(parents=True, exist_ok=True)
 
+
+def string_to_bool(value):
+    if value.lower() in {"false", "f", "no", "n", "0"}:
+        return False
+    elif value.lower() in {"true", "t", "yes", "y", "1"}:
+        return True
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", required=True)
-parser.add_argument("-s", required=True)
-parser.add_argument("-i", required=True)
-parser.add_argument("-f", required=True)
+parser.add_argument("-m", required=True, help="msa file to give (either .fasta or .a3m)", type=str)
+parser.add_argument("-s", required=True, help="structure file (either .pdb or .cif)", type=str)
+parser.add_argument("-i", required=True, help="maximum percentage identity between sequences to keep", type=int)
+parser.add_argument("-f", required=True, help="final number of sequences to keep", type=int)
+parser.add_argument("--split", type=string_to_bool, required=True, help="split fasta before filtering sequences")
+
 
 args = parser.parse_args()
 
@@ -29,6 +41,9 @@ input_msa = args.m
 
 structure = args.s
 A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
+
+# TODO: delete
+# A3M_CONVERTER = "./a3m_to_fasta.sh"
 
 
 def check_msa(input):
@@ -48,27 +63,14 @@ def check_msa(input):
     return fasta_msa
 
 
-def filter_fasta(
-    fasta_msa,
-    hh_filter_msa,
-    filtered_msa,
-    max_percentage_identity=80,
-    maximum_sequences=100,
-):
-    filter_msa.run_hhfilter(fasta_msa, hh_filter_msa, max_percentage_identity)
-    filter_msa.select_remaining(hh_filter_msa, filtered_msa, maximum_sequences)
-
-
-hh_filter = os.path.join(str(dir_temp), "hh_filter.fasta")
-filtered_msa = os.path.join(str(dir_temp), "filtered.fasta")
-output = os.path.join(dir_result, "output")
 fasta_msa = check_msa(input_msa)
-filter_fasta(fasta_msa, hh_filter, filtered_msa, int(args.i), int(args.f))
-
 obj = check_complex.r4s_multi(
-    msa_input=filtered_msa,
-    output=output,
+    msa_input=fasta_msa,
+    output="output",
     structure_file=structure,
     dir_temp=str(dir_temp),
+    maximum_percentage_identity=args.i,
+    maximum_number_sequences=args.f,
+    split_identity=args.split,
 )
 obj.run()

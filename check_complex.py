@@ -13,10 +13,12 @@ from Bio.PDB.mmcifio import MMCIFIO
 
 RATE4SITE = "rate4site"
 MAFFT = "mafft"
+HHFILTER = "hhfilter"
 
 # Temporary
-# RATE4SITE = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/rate4site"
-# MAFFT = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/mafft"
+RATE4SITE = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/rate4site"
+MAFFT = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/mafft"
+HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
 
 
 class r4s_multi:
@@ -29,18 +31,27 @@ class r4s_multi:
         diverged=30,
         conserved=60,
         threshold_percent_gap=25,
+        maximum_percentage_identity=80,
+        maximum_number_sequences=100,
+        split_identity=False,
     ):
         self.msa_input = msa_input
+        self.structure_file = structure_file
         self.output = output
         self.dir_temp = dir_temp
-        self.structure_file = structure_file
+        self.msa_hhfilter = os.path.join(dir_temp, "msa_hhfilter.fasta")
+        self.msa_filtered = os.path.join(dir_temp, "msa_filtered.fasta")
         self.diverged = diverged
         self.conserved = conserved
         self.threshold_percent_gap = threshold_percent_gap
+        self.maximum_percentage_identity = maximum_percentage_identity
+        self.maximum_number_sequences = maximum_number_sequences
+        self.split_identity = split_identity
         self.dic_score = {}
         self.conservation_data = {}
         self.mafft_result = {}
         self.test = {}
+
         self.setup_logging()
         self.check_structure_file()
         if self.structure_file_type == ".pdb":
@@ -49,14 +60,38 @@ class r4s_multi:
             pdb2cif.convert2cif(self.structure_file, converted_structure_file)
             self.structure_file = converted_structure_file
 
+    def setup_logging(self):
+        FORMAT = "[%(asctime)s] - %(levelname)s - %(message)s"
+        DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+        logging.basicConfig(format=FORMAT, datefmt=DATE_FORMAT)
+        self.logger = logging.getLogger("Conservation Pipeline")
+        self.logger.setLevel(logging.INFO)
+        fh_detailed = logging.FileHandler("rate4site.log")
+        fh_detailed.setLevel(logging.INFO)
+        fh_detailed.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
+        self.logger.addHandler(fh_detailed)
+
     def run(self):
+
         self.check_fasta()
         if self.complex:
-            self.get_subsequence()
-            self.create_fasta()
+            if not self.split_identity:
+                self.run_hhfilter(self.msa_input, self.msa_hhfilter)
+                self.select_remaining(self.msa_hhfilter, self.msa_filtered)
+                self.get_subsequence(self.msa_filtered)
+                self.create_fasta()
+            else:
+                self.make_fasta_seq_one_line(self.msa_input)
+                self.get_subsequence(self.msa_input)
+                self.create_fasta()
+
+                for index in self.fasta_sequences:
+                    fasta = self.fasta_sequences[index]["fasta"]
+                    self.run_hhfilter(fasta, fasta)
+                    self.select_remaining(fasta, fasta)
+
             for index in self.fasta_sequences:
                 fasta = self.fasta_sequences[index]["fasta"]
-
                 self.computeR4S(fasta, self.output + str(index))
                 self.get_score_from_r4s(self.output + str(index) + ".grade", index)
                 self.compute_bfact(index)
@@ -65,7 +100,9 @@ class r4s_multi:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
             self.create_cif_converge_diverge_r4s()
         else:
-            self.computeR4S(self.msa_input, self.output)
+            self.run_hhfilter(self.msa_input, self.msa_hhfilter)
+            self.select_remaining(self.msa_hhfilter, self.msa_filtered)
+            self.computeR4S(self.msa_filtered, self.output)
             self.get_score_from_r4s(self.output + ".grade", 0)
             self.compute_bfact(0)
             self.assign_sequence_cif_fasta()
@@ -73,18 +110,27 @@ class r4s_multi:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
             self.create_cif_converge_diverge_r4s()
 
-    def setup_logging(self):
-        FORMAT = "%(levelname)s - %(message)s - %(asctime)s"
-        DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-        logging.basicConfig(format=FORMAT, datefmt=DATE_FORMAT)
-        self.logger = logging.getLogger("rate4site")
-        self.logger.setLevel(logging.INFO)
-        fh_detailed = logging.FileHandler("rate4site.log")
-        fh_detailed.setLevel(logging.INFO)
-        fh_detailed.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
-        self.logger.addHandler(fh_detailed)
+    def run_hhfilter(self, input, output):
+        os.system(f"{HHFILTER} -i {input} -o {output} -id {self.maximum_percentage_identity}")
+
+    def select_remaining(self, input, output):
+        result_lines = ""
+        print(f"maximum number sequences: {self.maximum_number_sequences}")
+        with open(input, "r") as f:
+            lines = f.readlines()
+            counter = 0
+            for line in lines:
+                if line.startswith(">"):
+                    counter += 1
+                if counter > self.maximum_number_sequences:
+                    break
+                result_lines += line
+
+        with open(output, "w") as o:
+            o.write(result_lines)
 
     def check_structure_file(self):
+        """Check if structure_file is a pdb or a cif and if not tell the user about it and stop the pipeline"""
         valid_extensions = [".pdb", ".cif"]
         if Path(self.structure_file).is_file() and Path(self.structure_file).suffix in valid_extensions:
             self.structure_file_type = Path(self.structure_file).suffix
@@ -98,6 +144,7 @@ class r4s_multi:
         with open(self.msa_input, "r") as f:
             firstline = f.readline()
             if firstline.startswith("#"):
+                self.logger.info("Fasta with multiple sequences")
                 self.complex = True
                 firstline_no_comma = firstline[1:]
                 pattern_split_in_two_group = r"[\d,]+"
@@ -109,52 +156,84 @@ class r4s_multi:
                 self.length_number_couple = []
                 for index, length in enumerate(length_sequences):
                     self.length_number_couple.append((length, number_of_sequences[index]))
+            else:
+                self.logger.info("Fasta with only one sequence")
 
-    def get_subsequence(self):
+    def make_fasta_seq_one_line(self, fasta):
+        with open(fasta, "r+") as f:
+            lines = f.readlines()
+            one_line_file = ""
+            sequence = ""
+            header = ""
+
+            for line in lines:
+                if not line.startswith("#"):
+                    if line.startswith(">"):
+                        if header:
+                            one_line_file += header + sequence + "\n"
+                        header = line
+                        sequence = ""
+                    else:
+                        sequence += line.strip()
+            one_line_file += header + sequence
+            f.seek(0)
+            f.truncate()
+            f.write(one_line_file)
+
+    def get_subsequence(self, fasta):
         """get all the subsequence from a fasta"""
         self.fasta_sequences = {}
 
-        with open(self.msa_input, "r") as f:
+        with open(fasta, "r") as f:
             lines = f.readlines()
             current_start_position = 0
 
             for index, tup in enumerate(self.length_number_couple):
+                count_sequences = 0
                 length = current_start_position + int(tup[0])
                 self.fasta_sequences[index] = {}
-                self.fasta_sequences[index]["header"] = []
+                self.fasta_sequences[index]["count_sequences"] = []
                 for line in lines:
 
                     stripped_line = line.strip()
                     sequence = ""
                     if not line.startswith("#"):
                         if line.startswith(">"):
+                            # TODO: change or remove the header (not always in multiple)
+                            count_sequences += 1
                             header = stripped_line[1:]
                             header = header.split("\t")
-                            current_header = header[index]
-                            self.fasta_sequences[index][current_header] = ""
+                            # current_header = header[index]
+                            self.fasta_sequences[index][count_sequences] = ""
 
                         else:
                             sequence = stripped_line[current_start_position:length]
-                            self.fasta_sequences[index]["header"].append(current_header)
-                            self.fasta_sequences[index][current_header] = {}
-                            self.fasta_sequences[index][current_header]["sequence"] = sequence
-                            self.fasta_sequences[index][current_header]["occurrence"] = tup[1]
+                            self.fasta_sequences[index]["count_sequences"].append(count_sequences)
+                            self.fasta_sequences[index][count_sequences] = {}
+                            self.fasta_sequences[index][count_sequences]["sequence"] = sequence
+                            self.fasta_sequences[index][count_sequences]["occurrence"] = tup[1]
                 current_start_position = length
 
     def create_fasta(self):
+        """Create a fasta with the subsequence of each protein contained in the original fasta"""
         count = 1
         for index in self.fasta_sequences:
             fasta = f"split_{count}.fasta"
             self.fasta_sequences[index]["fasta"] = fasta
             with open(fasta, "w") as f:
-                for header in self.fasta_sequences[index]["header"]:
-                    f.write(f"> {header}\n{self.fasta_sequences[index][header]['sequence']}\n")
+                for count_sequences in self.fasta_sequences[index]["count_sequences"]:
+                    f.write(f">{count_sequences}\n{self.fasta_sequences[index][count_sequences]['sequence']}\n")
             count += 1
 
     def computeR4S(self, msa_file, result):
-        os.system(f"{RATE4SITE}  -s {msa_file} -o {result}.grade -x {result}.ph")
+        command = f"{RATE4SITE}  -s {msa_file} -o {result}.grade -x {result}.ph"
+        self.logger.info("Rate4site command :")
+        self.logger.info(command)
+        os.system(command)
 
     def get_score_from_r4s(self, input, index):
+        """Compute the score for each, aa, the percentage of no gap"""
+
         sequence = ""
         res_order = []
         score = {"score": {}, "percentage_no_gap": {}}
@@ -184,13 +263,13 @@ class r4s_multi:
             "percentage_no_gap": score["percentage_no_gap"],
         }
         if self.complex:
-            self.dic_score[index]["occurrence"] = self.fasta_sequences[index][self.fasta_sequences[index]["header"][0]][
-                "occurrence"
-            ]
+            first_seq = self.fasta_sequences[index]["count_sequences"][0]
+            self.dic_score[index]["occurrence"] = self.fasta_sequences[index][first_seq]["occurrence"]
         else:
             self.dic_score[index]["occurrence"] = 1
 
     def compute_bfact(self, index=0):
+        """Compute the bfactor based on the values obtained in rate4site"""
         conservation_data = {}
         conservation_data["diverged"] = {}
         conservation_data["conserved"] = {}
@@ -233,6 +312,7 @@ class r4s_multi:
         self.conservation_data[index] = conservation_data
 
     def extract_sequence_cif(self):
+        """Extract sequence from the cif"""
         parser = MMCIFParser()
         self.structure = parser.get_structure(structure_id="", filename=self.structure_file)
 
@@ -334,6 +414,8 @@ class r4s_multi:
         self.compare_mafft_alignment()
 
     def compare_mafft_alignment(self):
+        """Compare and assign the best alignment between r4s and cif (if percentage identity over a certain threshold)"""
+        MINIMUM_PERCENTAGE_IDENTITY = 75
         pdb_sequences = self.extract_sequence_cif()
         chains = pdb_sequences["chain"]
         self.link_sequence_chain = []
@@ -345,25 +427,24 @@ class r4s_multi:
                     "chain": "",
                 }
                 for chain in chains:
-                    # TODO add variable
+                    header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
+                    header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
+                    print(self.mafft_result[index][chain]["sequences"]["order"][0])
                     percentage_identity = self.compare_sequences(
-                        self.mafft_result[index][chain]["sequences"][
-                            self.mafft_result[index][chain]["sequences"]["order"][0]
-                        ],
-                        self.mafft_result[index][chain]["sequences"][
-                            self.mafft_result[index][chain]["sequences"]["order"][1]
-                        ],
+                        self.mafft_result[index][chain]["sequences"][header_r4s],
+                        self.mafft_result[index][chain]["sequences"][header_cif],
                     )
                     if percentage_identity > percentage["max"]:
                         percentage["max"] = percentage_identity
                         percentage["index"] = index
                         percentage["chain"] = chain
                         percentage["occurrence"] = occurrence
-                if percentage["max"] > 75:
+                if percentage["max"] > MINIMUM_PERCENTAGE_IDENTITY:
                     self.link_sequence_chain.append(percentage)
                     chains.remove(percentage["chain"])
 
     def compare_sequences(self, seq1, seq2):
+        """Compare two sequences and return the percentage of identity between both"""
         if len(seq1) != len(seq2):
             raise ValueError("Sequences must be of the same length")
 
@@ -374,6 +455,7 @@ class r4s_multi:
         return percentage_similarity
 
     def get_sequence_from_alignment(self, alignment):
+        """Return all the sequences from a fasta"""
         sequences = {}
         sequences["order"] = []
         current_id = None
@@ -397,8 +479,12 @@ class r4s_multi:
         return sequences
 
     def align_pdb_r4s(self, index, occurrence, chain):
-        seq_r4s = self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][0]]
-        seq_cif = self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][1]]
+        """Align the r4s and cif sequence and if match assign the value of the r4s"""
+        header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
+        header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
+
+        seq_r4s = self.mafft_result[index][chain]["sequences"][header_r4s]
+        seq_cif = self.mafft_result[index][chain]["sequences"][header_cif]
         index_cif = self.mafft_result[index][chain]["index_cif"]
 
         ite_index = 0  # iterator of index_pdb (true number in the pdb file)
@@ -450,7 +536,18 @@ class r4s_multi:
         self.test[index][occurrence] = {}
         self.test[index][occurrence][chain] = r4s_value_correspondence
 
+    def rna_cleaning(self, cif):
+        """Biopython cif parser add '' to rna component, this function trim that"""
+        search_text = r"'(\w+)''"
+        with open(cif, "r+") as f:
+            file = f.read()
+            cleaned_file = re.sub(search_text, lambda m: f"{m.group(1)}'", file)
+            f.seek(0)
+            f.truncate()
+            f.write(cleaned_file)
+
     def create_cif_converge_diverge_r4s(self):
+        """Create the a cif with the with setting the value of r4s in occupancy column"""
         for residue in self.structure.get_residues():
             for atom in residue.get_atoms():
                 atom.set_occupancy(0)
@@ -470,7 +567,9 @@ class r4s_multi:
         io.set_structure(self.structure)
         io.save(cif_output)
         temp_dic = io.dic
+        # Change the first column who can contain different name chain which ngl have problem interpreting
         if "_atom_site.label_asym_id" in io.dic:
             temp_dic["_atom_site.label_asym_id"] = temp_dic["_atom_site.auth_asym_id"]
             io.set_dict(temp_dic)
             io.save(cif_output)
+        self.rna_cleaning(cif_output)
