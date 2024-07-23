@@ -14,6 +14,8 @@
 # OUTDIR => where the msa will be generated
 # PROGRESSLOG => name and path to the job progress log file (for printing on the webserver)
 # INPUT => name and path to the fasta input file
+# JOBSCRIPT => path to jobcmd.sh for r4s pipeline
+# JOBIDFILE => where cluster jobid is saved
 
 set -x
 echo Host $(hostname)
@@ -96,4 +98,5 @@ done
 
 # write log to file
 echo "[$(date '+%F %T')] ...done!" >> $PROGRESSLOG 
-echo End job: $(date)
+
+qsub -l mem=8Gb -N msa_tools_srv -q common -j oe -o $LOGDIR/ $JOBSCRIPT > $JOBIDFILE
