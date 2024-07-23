@@ -14,13 +14,6 @@ from Bio.PDB.mmcifio import MMCIFIO
 RATE4SITE = "rate4site"
 MAFFT = "mafft"
 HHFILTER = "hhfilter"
-
-# Temporary
-RATE4SITE = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/rate4site"
-MAFFT = "/home/demonz/programmation/stage/script_msa_tools/tools/bin/mafft"
-HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
-
-
 class r4s_multi:
     def __init__(
         self,
