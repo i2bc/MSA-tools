@@ -13,10 +13,6 @@ dir_temp.mkdir(parents=True, exist_ok=True)
 dir_result = Path("result")
 dir_result.mkdir(parents=True, exist_ok=True)
 
-dir_zip = Path("zip")
-dir_zip.mkdir(parents=True, exist_ok=True)
-
-
 def string_to_bool(value):
     if value.lower() in {"false", "f", "no", "n", "0"}:
         return False
