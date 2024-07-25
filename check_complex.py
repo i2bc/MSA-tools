@@ -14,12 +14,19 @@ from Bio.PDB.mmcifio import MMCIFIO
 RATE4SITE = "rate4site"
 MAFFT = "mafft"
 HHFILTER = "hhfilter"
+
+# TODO: Delete when done with local testing
+RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
+MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
+HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
+
+
 class r4s_multi:
     def __init__(
         self,
         msa_input,
-        output,
-        dir_temp,
+        output_directory,
+        temporary_directory,
         structure_file,
         diverged=30,
         conserved=60,
@@ -30,10 +37,10 @@ class r4s_multi:
     ):
         self.msa_input = msa_input
         self.structure_file = structure_file
-        self.output = output
-        self.dir_temp = dir_temp
-        self.msa_hhfilter = os.path.join(dir_temp, "msa_hhfilter.fasta")
-        self.msa_filtered = os.path.join(dir_temp, "msa_filtered.fasta")
+        self.output_directory = output_directory
+        self.temporary_directory = temporary_directory
+        self.msa_hhfilter = os.path.join(temporary_directory, "msa_hhfilter.fasta")
+        self.msa_filtered = os.path.join(temporary_directory, "msa_filtered.fasta")
         self.diverged = diverged
         self.conserved = conserved
         self.threshold_percent_gap = threshold_percent_gap
@@ -43,7 +50,7 @@ class r4s_multi:
         self.dic_score = {}
         self.conservation_data = {}
         self.mafft_result = {}
-        self.test = {}
+        self.dict_r4s_cif_mapping = {}
 
         self.setup_logging()
         self.check_structure_file()
@@ -68,43 +75,49 @@ class r4s_multi:
 
         self.check_fasta()
         if self.complex:
+            fasta_paths = ""
             if not self.split_identity:
                 self.run_hhfilter(self.msa_input, self.msa_hhfilter)
                 self.select_remaining(self.msa_hhfilter, self.msa_filtered)
                 self.get_subsequence(self.msa_filtered)
-                self.create_fasta()
+                fasta_paths = self.create_fasta(self.output_directory)
             else:
                 self.make_fasta_seq_one_line(self.msa_input)
                 self.get_subsequence(self.msa_input)
-                self.create_fasta()
+                fasta_paths = self.create_fasta(self.output_directory)
 
                 for index in self.fasta_sequences:
-                    fasta = self.fasta_sequences[index]["fasta"]
-                    self.run_hhfilter(fasta, fasta)
-                    self.select_remaining(fasta, fasta)
+                    print(f"create fasta path: {fasta_paths}, index: {index}")
+                    self.run_hhfilter(fasta_paths[index], fasta_paths[index])
+                    self.select_remaining(fasta_paths[index], fasta_paths[index])
 
             for index in self.fasta_sequences:
-                fasta = self.fasta_sequences[index]["fasta"]
-                self.computeR4S(fasta, self.output + str(index))
-                self.get_score_from_r4s(self.output + str(index) + ".grade", index)
+                print(f"r4s fasta path: {fasta_paths}, index: {index}")
+                r4s_output = os.path.join(self.output_directory, "r4s_" + str(index))
+                self.computeR4S(fasta_paths[index], r4s_output)
+                self.get_score_from_r4s(r4s_output + ".grade", index)
                 self.compute_bfact(index)
             self.assign_sequence_cif_fasta()
             for group in self.link_sequence_chain:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
-            self.create_cif_converge_diverge_r4s()
+            structure_output = os.path.join(self.output_directory, "structure_output.cif")
+            self.create_cif_converge_diverge_r4s(structure_output)
         else:
             self.run_hhfilter(self.msa_input, self.msa_hhfilter)
             self.select_remaining(self.msa_hhfilter, self.msa_filtered)
-            self.computeR4S(self.msa_filtered, self.output)
-            self.get_score_from_r4s(self.output + ".grade", 0)
+            r4s_output = os.path.join(self.output_directory, "r4s")
+            self.computeR4S(self.msa_filtered, r4s_output)
+            self.get_score_from_r4s(r4s_output + ".grade", 0)
             self.compute_bfact(0)
             self.assign_sequence_cif_fasta()
             for group in self.link_sequence_chain:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
-            self.create_cif_converge_diverge_r4s()
+            structure_output = os.path.join(self.output_directory, "structure_output.cif")
+            self.create_cif_converge_diverge_r4s(structure_output)
 
     def run_hhfilter(self, input, output):
         os.system(f"{HHFILTER} -i {input} -o {output} -id {self.maximum_percentage_identity}")
+        return output
 
     def select_remaining(self, input, output):
         result_lines = ""
@@ -121,6 +134,7 @@ class r4s_multi:
 
         with open(output, "w") as o:
             o.write(result_lines)
+        return output
 
     def check_structure_file(self):
         """Check if structure_file is a pdb or a cif and if not tell the user about it and stop the pipeline"""
@@ -207,16 +221,22 @@ class r4s_multi:
                             self.fasta_sequences[index][count_sequences]["occurrence"] = tup[1]
                 current_start_position = length
 
-    def create_fasta(self):
-        """Create a fasta with the subsequence of each protein contained in the original fasta"""
+    def create_fasta(self, output_directory):
+        """Create a fasta with the subsequence of each protein contained in the original fasta,
+        return an array of the output path
+        """
         count = 1
+        array_path = []
         for index in self.fasta_sequences:
             fasta = f"split_{count}.fasta"
+            fasta_output = os.path.join(output_directory, fasta)
             self.fasta_sequences[index]["fasta"] = fasta
-            with open(fasta, "w") as f:
+            with open(fasta_output, "w") as f:
                 for count_sequences in self.fasta_sequences[index]["count_sequences"]:
                     f.write(f">{count_sequences}\n{self.fasta_sequences[index][count_sequences]['sequence']}\n")
             count += 1
+            array_path.append(fasta_output)
+        return array_path
 
     def computeR4S(self, msa_file, result):
         command = f"{RATE4SITE}  -s {msa_file} -o {result}.grade -x {result}.ph"
@@ -524,10 +544,10 @@ class r4s_multi:
             else:
                 if sr4s != "-":
                     ite_r4s += 1
-        if index not in self.test:
-            self.test[index] = {}
-        self.test[index][occurrence] = {}
-        self.test[index][occurrence][chain] = r4s_value_correspondence
+        if index not in self.dict_r4s_cif_mapping:
+            self.dict_r4s_cif_mapping[index] = {}
+        self.dict_r4s_cif_mapping[index][occurrence] = {}
+        self.dict_r4s_cif_mapping[index][occurrence][chain] = r4s_value_correspondence
 
     def rna_cleaning(self, cif):
         """Biopython cif parser add '' to rna component, this function trim that"""
@@ -539,30 +559,31 @@ class r4s_multi:
             f.truncate()
             f.write(cleaned_file)
 
-    def create_cif_converge_diverge_r4s(self):
+    def create_cif_converge_diverge_r4s(self, output):
         """Create the a cif with the with setting the value of r4s in occupancy column"""
         for residue in self.structure.get_residues():
             for atom in residue.get_atoms():
                 atom.set_occupancy(0)
 
-        for index in self.test:
-            for occurrence in self.test[index]:
-                for chain in self.test[index][occurrence]:
+        for index in self.dict_r4s_cif_mapping:
+            for occurrence in self.dict_r4s_cif_mapping[index]:
+                for chain in self.dict_r4s_cif_mapping[index][occurrence]:
                     struct_chain = self.structure[0][chain]
                     for residue in struct_chain.get_residues():
                         residue_number = residue.get_id()[1]
-                        if residue_number in self.test[index][occurrence][chain]["bin"]:
+                        if residue_number in self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"]:
                             for atom in residue.get_atoms():
-                                atom.set_occupancy(self.test[index][occurrence][chain]["bin"][residue_number])
+                                atom.set_occupancy(
+                                    self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"][residue_number]
+                                )
 
-        cif_output = self.output + ".cif"
         io = MMCIFIO()
         io.set_structure(self.structure)
-        io.save(cif_output)
+        io.save(output)
         temp_dic = io.dic
         # Change the first column who can contain different name chain which ngl have problem interpreting
         if "_atom_site.label_asym_id" in io.dic:
             temp_dic["_atom_site.label_asym_id"] = temp_dic["_atom_site.auth_asym_id"]
             io.set_dict(temp_dic)
-            io.save(cif_output)
-        self.rna_cleaning(cif_output)
+            io.save(output)
+        self.rna_cleaning(output)
