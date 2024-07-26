@@ -43,6 +43,11 @@ def convert2cif(pdb_file,cif_file):
     io.set_structure(struc)
     io.save(cif_file)
     print("pdb2cif done!")
+    with open(cif_file) as f:
+       content = f.readlines()
+    with open(cif_file,'w') as f:
+       f.write("data_"+os.path.basename(os.path.splitext(cif_file)[0]))
+       f.write("".join(content))
 
 
 def main():

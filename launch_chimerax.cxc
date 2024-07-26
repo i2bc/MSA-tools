@@ -1,0 +1,8 @@
+alias check_interface show $1 cartoons; delete H; color $1 bychain; select $1/$2 :<4.5 & $1/$3 | $1/$3 :<4.5 & $1/$2 residues true; show sel atoms; color sel byhetero; hbonds $1/$2 restrict $1/$3 distSlop 0.5 angleSlop 30.0 color yellow twoColors true reveal true log true; hbonds $1/$2 restrict $1/$3 distSlop 0.5 angleSlop 30.0 color lime reveal true log true saltOnly true name salt_bridges; view sel clip true; ~select;
+alias colour_cons color byattribute occupancy $1 palette white:yellow:orange:red range 0,100
+alias colour_af color byattribute bfactor $1 palette alphafold
+
+open output.cif
+color byattribute occupancy palette white:yellow:orange:red range 0,100
+
+log html <h1>Colouring functions:</h1><ul><li><code><b>colour_cons #1</b></code>: colour by conservation (occupancy field)</li><li><code><b>colour_af #1</b></code>: colour by pLDDT (bfactor field)</li><li><code><b>check_interface #1 A B</b></code>: colour by chain & show contacts</li></ul>
