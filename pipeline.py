@@ -30,7 +30,7 @@ parser.add_argument("-i", required=True, help="maximum percentage identity betwe
 parser.add_argument("-f", required=True, help="final number of sequences to keep", type=int)
 parser.add_argument("-o", required=True, help="output directory", type=str)
 parser.add_argument("--split", type=string_to_bool, required=True, help="split fasta before filtering sequences")
-
+parser.add_argument("--chains", required=False, nargs="+", type=str, help="array of chain wanted")
 
 args = parser.parse_args()
 
@@ -65,6 +65,7 @@ print(f"fasta msa {fasta_msa}")
 obj = check_complex.r4s_multi(
     msa_input=fasta_msa,
     output_directory=args.o,
+    array_chains=None if not args.chains else [x.upper() for x in args.chains],
     structure_file=structure,
     temporary_directory=str(dir_temp),
     maximum_percentage_identity=args.i,

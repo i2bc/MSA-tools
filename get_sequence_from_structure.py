@@ -8,6 +8,7 @@ from Bio.PDB.MMCIFParser import MMCIFParser
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", required=True)
 parser.add_argument("-o", required=True)
+parser.add_argument("--chains", required=False, nargs="+", type=str, help="array of chain wanted")
 
 args = parser.parse_args()
 
@@ -17,9 +18,11 @@ class get_sequence_from_structure:
         self,
         structure_file,
         output,
+        array_chains=[],
     ):
         self.structure_file = structure_file
         self.output = output
+        self.array_chains = array_chains
         self.prefix_structure_file = Path(self.structure_file).stem
 
     def run(self):
@@ -38,7 +41,7 @@ class get_sequence_from_structure:
             print("wrong structure file type, should be either .pdb or .cif")
             exit(1)
 
-    def get_sequence(self):
+    def get_sequence(self, chains):
         parser = MMCIFParser()
         self.structure = parser.get_structure(structure_id="", filename=self.structure_file)
 
@@ -100,6 +103,10 @@ class get_sequence_from_structure:
         dic_sequence["chain"] = []
         for chain in self.structure.get_chains():
             name_chain = chain.get_id()
+            if chains:
+                if name_chain not in chains:
+                    continue
+
             dic_sequence["chain"].append(name_chain)
             dic_sequence[name_chain] = {}
             dic_sequence[name_chain]["order"] = []
@@ -117,7 +124,7 @@ class get_sequence_from_structure:
         return dic_sequence
 
     def write_fasta(self):
-        dic_sequence = self.get_sequence()
+        dic_sequence = self.get_sequence(self.array_chains)
         sequence = ""
         flag_first = True
         for chain in dic_sequence["chain"]:
@@ -134,5 +141,8 @@ class get_sequence_from_structure:
 
 structure_file = args.i
 output = args.o
-sequence = get_sequence_from_structure(structure_file, output)
+array_chains = args.chains
+sequence = get_sequence_from_structure(
+    structure_file=structure_file, output=output, array_chains=None if not args.chains else [x.upper for x in args.chains]
+)
 sequence.run()

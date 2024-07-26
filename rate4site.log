@@ -1,0 +1,88 @@
+[2024-07-25 14:32:06] - INFO - Fasta with only one sequence
+[2024-07-25 14:32:06] - INFO - Rate4site command :
+[2024-07-25 14:32:06] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s temp/msa_filtered.fasta -o result/r4s.grade -x result/r4s.ph
+[2024-07-25 14:33:01] - INFO - Fasta with multiple sequences
+[2024-07-25 14:33:01] - INFO - Rate4site command :
+[2024-07-25 14:33:01] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:33:03] - INFO - Rate4site command :
+[2024-07-25 14:33:03] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:35:36] - INFO - Fasta with multiple sequences
+[2024-07-25 14:35:36] - INFO - Rate4site command :
+[2024-07-25 14:35:36] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:35:38] - INFO - Rate4site command :
+[2024-07-25 14:35:38] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:41:31] - INFO - Fasta with multiple sequences
+[2024-07-25 14:41:31] - INFO - Rate4site command :
+[2024-07-25 14:41:31] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:41:33] - INFO - Rate4site command :
+[2024-07-25 14:41:33] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:43:10] - INFO - Fasta with multiple sequences
+[2024-07-25 14:43:10] - INFO - Rate4site command :
+[2024-07-25 14:43:10] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:43:13] - INFO - Rate4site command :
+[2024-07-25 14:43:13] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:46:21] - INFO - Fasta with multiple sequences
+[2024-07-25 14:46:21] - INFO - Rate4site command :
+[2024-07-25 14:46:21] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:46:24] - INFO - Rate4site command :
+[2024-07-25 14:46:24] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:52:35] - INFO - Fasta with multiple sequences
+[2024-07-25 14:52:36] - INFO - Rate4site command :
+[2024-07-25 14:52:36] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:52:38] - INFO - Rate4site command :
+[2024-07-25 14:52:38] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:53:01] - INFO - Fasta with multiple sequences
+[2024-07-25 14:53:01] - INFO - Rate4site command :
+[2024-07-25 14:53:01] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:53:03] - INFO - Rate4site command :
+[2024-07-25 14:53:03] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:55:00] - INFO - Fasta with multiple sequences
+[2024-07-25 14:55:01] - INFO - Rate4site command :
+[2024-07-25 14:55:01] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:55:03] - INFO - Rate4site command :
+[2024-07-25 14:55:03] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:56:16] - INFO - Fasta with multiple sequences
+[2024-07-25 14:56:16] - INFO - Rate4site command :
+[2024-07-25 14:56:16] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:56:19] - INFO - Rate4site command :
+[2024-07-25 14:56:19] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 14:57:15] - INFO - Fasta with multiple sequences
+[2024-07-25 14:57:15] - INFO - Rate4site command :
+[2024-07-25 14:57:15] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 14:57:17] - INFO - Rate4site command :
+[2024-07-25 14:57:17] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 15:39:57] - INFO - Fasta with multiple sequences
+[2024-07-25 15:39:57] - INFO - Rate4site command :
+[2024-07-25 15:39:57] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 15:39:59] - INFO - Rate4site command :
+[2024-07-25 15:39:59] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 16:59:54] - INFO - Fasta with multiple sequences
+[2024-07-25 16:59:54] - INFO - Rate4site command :
+[2024-07-25 16:59:54] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 16:59:56] - INFO - Rate4site command :
+[2024-07-25 16:59:56] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 17:00:19] - INFO - Fasta with multiple sequences
+[2024-07-25 17:00:19] - INFO - Rate4site command :
+[2024-07-25 17:00:19] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 17:00:21] - INFO - Rate4site command :
+[2024-07-25 17:00:21] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 17:00:31] - INFO - Fasta with multiple sequences
+[2024-07-25 17:00:31] - INFO - Rate4site command :
+[2024-07-25 17:00:31] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 17:00:33] - INFO - Rate4site command :
+[2024-07-25 17:00:33] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 17:01:06] - INFO - Fasta with multiple sequences
+[2024-07-25 17:01:07] - INFO - Rate4site command :
+[2024-07-25 17:01:07] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 17:01:09] - INFO - Rate4site command :
+[2024-07-25 17:01:09] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 17:03:36] - INFO - Fasta with multiple sequences
+[2024-07-25 17:03:36] - INFO - Rate4site command :
+[2024-07-25 17:03:36] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 17:03:39] - INFO - Rate4site command :
+[2024-07-25 17:03:39] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-07-25 17:03:49] - INFO - Fasta with multiple sequences
+[2024-07-25 17:03:49] - INFO - Rate4site command :
+[2024-07-25 17:03:49] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-07-25 17:03:51] - INFO - Rate4site command :
+[2024-07-25 17:03:51] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph

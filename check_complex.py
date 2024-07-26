@@ -28,6 +28,7 @@ class r4s_multi:
         output_directory,
         temporary_directory,
         structure_file,
+        array_chains=[],
         diverged=30,
         conserved=60,
         threshold_percent_gap=25,
@@ -37,6 +38,7 @@ class r4s_multi:
     ):
         self.msa_input = msa_input
         self.structure_file = structure_file
+        self.array_chains = array_chains
         self.output_directory = output_directory
         self.temporary_directory = temporary_directory
         self.msa_hhfilter = os.path.join(temporary_directory, "msa_hhfilter.fasta")
@@ -92,7 +94,6 @@ class r4s_multi:
                     self.select_remaining(fasta_paths[index], fasta_paths[index])
 
             for index in self.fasta_sequences:
-                print(f"r4s fasta path: {fasta_paths}, index: {index}")
                 r4s_output = os.path.join(self.output_directory, "r4s_" + str(index))
                 self.computeR4S(fasta_paths[index], r4s_output)
                 self.get_score_from_r4s(r4s_output + ".grade", index)
@@ -324,7 +325,7 @@ class r4s_multi:
 
         self.conservation_data[index] = conservation_data
 
-    def extract_sequence_cif(self):
+    def extract_sequence_cif(self, chains=[]):
         """Extract sequence from the cif"""
         parser = MMCIFParser()
         self.structure = parser.get_structure(structure_id="", filename=self.structure_file)
@@ -387,6 +388,10 @@ class r4s_multi:
         dic_sequence["chain"] = []
         for chain in self.structure.get_chains():
             name_chain = chain.get_id()
+            if chains:
+                if name_chain not in chains:
+                    continue
+
             dic_sequence["chain"].append(name_chain)
             dic_sequence[name_chain] = {}
             dic_sequence[name_chain]["order"] = []
@@ -406,7 +411,8 @@ class r4s_multi:
         return dic_sequence
 
     def assign_sequence_cif_fasta(self):
-        pdb_sequences = self.extract_sequence_cif()
+        pdb_sequences = self.extract_sequence_cif(self.array_chains)
+        print(f"array chains: {self.array_chains}")
         for index in self.dic_score:
             sequence = self.dic_score[index]["sequence"]
 
@@ -429,7 +435,7 @@ class r4s_multi:
     def compare_mafft_alignment(self):
         """Compare and assign the best alignment between r4s and cif (if percentage identity over a certain threshold)"""
         MINIMUM_PERCENTAGE_IDENTITY = 75
-        pdb_sequences = self.extract_sequence_cif()
+        pdb_sequences = self.extract_sequence_cif(self.array_chains)
         chains = pdb_sequences["chain"]
         self.link_sequence_chain = []
         for index in self.mafft_result:
