@@ -33,7 +33,7 @@ class r4s_multi:
         threshold_percent_gap=25,
         maximum_percentage_identity=80,
         maximum_number_sequences=100,
-        split_identity=False,
+        split_identity=True,
     ):
         self.msa_input = msa_input
         self.structure_file = structure_file
@@ -442,7 +442,7 @@ class r4s_multi:
                 for chain in chains:
                     header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
                     header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
-                    print(self.mafft_result[index][chain]["sequences"]["order"][0])
+                    # print(self.mafft_result[index][chain]["sequences"]["order"][0])
                     percentage_identity = self.compare_sequences(
                         self.mafft_result[index][chain]["sequences"][header_r4s],
                         self.mafft_result[index][chain]["sequences"][header_cif],
@@ -463,7 +463,7 @@ class r4s_multi:
 
         matches = sum(1 for a, b in zip(seq1, seq2) if a == b)
 
-        percentage_similarity = (matches / len(seq1)) * 100
+        percentage_similarity = (matches / len(seq1.replace('-',''))) * 100
 
         return percentage_similarity
 
