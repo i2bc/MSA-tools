@@ -35,7 +35,6 @@ parser.add_argument("--chains", required=False, nargs="+", type=str, help="array
 args = parser.parse_args()
 
 input_msa = args.m
-# input_msa = "complex/2_HBA_2_HBB_HUMAN.a3m"
 
 structure = args.s
 A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"

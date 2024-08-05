@@ -97,7 +97,7 @@ class r4s_multi:
                 r4s_output = os.path.join(self.output_directory, "r4s_" + str(index))
                 self.computeR4S(fasta_paths[index], r4s_output)
                 self.get_score_from_r4s(r4s_output + ".grade", index)
-                self.compute_bfact(index)
+                self.compute_conservation(index)
             self.assign_sequence_cif_fasta()
             for group in self.link_sequence_chain:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
@@ -109,7 +109,7 @@ class r4s_multi:
             r4s_output = os.path.join(self.output_directory, "r4s")
             self.computeR4S(self.msa_filtered, r4s_output)
             self.get_score_from_r4s(r4s_output + ".grade", 0)
-            self.compute_bfact(0)
+            self.compute_conservation(0)
             self.assign_sequence_cif_fasta()
             for group in self.link_sequence_chain:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
@@ -282,8 +282,8 @@ class r4s_multi:
         else:
             self.dic_score[index]["occurrence"] = 1
 
-    def compute_bfact(self, index=0):
-        """Compute the bfactor based on the values obtained in rate4site"""
+    def compute_conservation(self, index=0):
+        """Compute the conservation based on the values obtained in rate4site"""
         conservation_data = {}
         conservation_data["diverged"] = {}
         conservation_data["conserved"] = {}
@@ -293,27 +293,27 @@ class r4s_multi:
         conservation_data["bin"] = {}
         scores = self.dic_score[index]["score"].values()
         amplitude = max(scores) - min(scores)
-        bfact_min = min(scores)
+        conservation_mini = min(scores)
 
         for res in self.dic_score[index]["res_order"]:
             MAX_SCORE = 99.0
             MIN_SCORE = 1.0
 
-            bfact = MAX_SCORE - (MAX_SCORE * (self.dic_score[index]["score"][res] - bfact_min) / amplitude)
+            conservation = MAX_SCORE - (MAX_SCORE * (self.dic_score[index]["score"][res] - conservation_mini) / amplitude)
 
-            if bfact > MAX_SCORE:
+            if conservation > MAX_SCORE:
                 conservation_data["bin"][res] = MAX_SCORE
-            elif bfact < MIN_SCORE:
+            elif conservation < MIN_SCORE:
                 conservation_data["bin"][res] = MIN_SCORE
             else:
-                conservation_data["bin"][res] = bfact
+                conservation_data["bin"][res] = conservation
 
-            if bfact < self.diverged:
+            if conservation < self.diverged:
                 conservation_data["diverged"][res] = True
             else:
                 conservation_data["diverged"][res] = False
 
-            if bfact > self.conserved:
+            if conservation > self.conserved:
                 conservation_data["conserved"][res] = True
             else:
                 conservation_data["conserved"][res] = False
@@ -469,7 +469,7 @@ class r4s_multi:
 
         matches = sum(1 for a, b in zip(seq1, seq2) if a == b)
 
-        percentage_similarity = (matches / len(seq1.replace('-',''))) * 100
+        percentage_similarity = (matches / len(seq1.replace("-", ""))) * 100
 
         return percentage_similarity
 
