@@ -96,3 +96,8 @@
 [2024-08-05 14:22:41] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
 [2024-08-05 14:22:45] - INFO - Rate4site command :
 [2024-08-05 14:22:45] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph
+[2024-08-06 11:10:30] - INFO - Fasta with multiple sequences
+[2024-08-06 11:10:30] - INFO - Rate4site command :
+[2024-08-06 11:10:30] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_1.fasta -o result/r4s_0.grade -x result/r4s_0.ph
+[2024-08-06 11:10:33] - INFO - Rate4site command :
+[2024-08-06 11:10:33] - INFO - ~/programmation/stage/script_msa_tools/tools/bin/rate4site  -s result/split_2.fasta -o result/r4s_1.grade -x result/r4s_1.ph

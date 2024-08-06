@@ -80,7 +80,7 @@ class r4s_multi:
             fasta_paths = ""
             if not self.split_identity:
                 self.run_hhfilter(self.msa_input, self.msa_hhfilter)
-                self.select_remaining(self.msa_hhfilter, self.msa_filtered)
+                self.get_best_match_from_fasta(self.msa_hhfilter, self.msa_filtered)
                 self.get_subsequence(self.msa_filtered)
                 fasta_paths = self.create_fasta(self.output_directory)
             else:
@@ -91,7 +91,7 @@ class r4s_multi:
                 for index in self.fasta_sequences:
                     print(f"create fasta path: {fasta_paths}, index: {index}")
                     self.run_hhfilter(fasta_paths[index], fasta_paths[index])
-                    self.select_remaining(fasta_paths[index], fasta_paths[index])
+                    self.get_best_match_from_fasta(fasta_paths[index], fasta_paths[index])
 
             for index in self.fasta_sequences:
                 r4s_output = os.path.join(self.output_directory, "r4s_" + str(index))
@@ -105,7 +105,7 @@ class r4s_multi:
             self.create_cif_converge_diverge_r4s(structure_output)
         else:
             self.run_hhfilter(self.msa_input, self.msa_hhfilter)
-            self.select_remaining(self.msa_hhfilter, self.msa_filtered)
+            self.get_best_match_from_fasta(self.msa_hhfilter, self.msa_filtered)
             r4s_output = os.path.join(self.output_directory, "r4s")
             self.computeR4S(self.msa_filtered, r4s_output)
             self.get_score_from_r4s(r4s_output + ".grade", 0)
@@ -120,22 +120,59 @@ class r4s_multi:
         os.system(f"{HHFILTER} -i {input} -o {output} -id {self.maximum_percentage_identity}")
         return output
 
-    def select_remaining(self, input, output):
-        result_lines = ""
-        print(f"maximum number sequences: {self.maximum_number_sequences}")
-        with open(input, "r") as f:
-            lines = f.readlines()
-            counter = 0
-            for line in lines:
+    def parse_fasta(self, file):
+        """Parse the FASTA file and return a list of dictionaries with headers and sequences."""
+        sequences = []
+        with open(file, "r") as f:
+            header = ""
+            sequence = ""
+            for line in f:
+                line = line.strip()
                 if line.startswith(">"):
-                    counter += 1
-                if counter > self.maximum_number_sequences:
-                    break
-                result_lines += line
+                    if header and sequence:
+                        sequences.append({"header": header, "sequence": sequence})
+                    header = line
+                    sequence = ""
+                else:
+                    sequence += line
+            if header and sequence:
+                sequences.append({"header": header, "sequence": sequence})
+        return sequences
 
-        with open(output, "w") as o:
-            o.write(result_lines)
-        return output
+    def sort_by_best_match(self, sequences):
+        """Get the best match compared to the first sequence in the list."""
+        if not sequences:
+            return None
+
+        main_header = sequences[0]["header"]
+        main_sequence = sequences[0]["sequence"]
+
+        for i in range(1, len(sequences)):
+            other_sequence = sequences[i]["sequence"]
+            match_count = sum(1 for a, b in zip(main_sequence, other_sequence) if a == b)
+            sequences[i]["matches"] = match_count
+        sorted_by_match = sorted(sequences[1:], reverse=True, key=lambda x: x["matches"])
+
+        sorted_by_match.insert(0, {"header": main_header, "sequence": main_sequence})
+
+        return sorted_by_match
+
+    def write_best_match(self, sequences, output_file, number_of_sequences):
+        with open(output_file, "w") as f:
+            # Start at 0 to account for main sequence
+            counter = 0
+            for sequence in sequences:
+                f.write(sequence["header"] + "\n")
+                f.write(sequence["sequence"] + "\n")
+                if counter == number_of_sequences:
+                    break
+                counter += 1
+
+    def get_best_match_from_fasta(self, fasta, output):
+        """get the closest sequences from the first sequence of a fasta and write them in a file"""
+        sequences = self.parse_fasta(fasta)
+        sorted_sequences = self.sort_by_best_match(sequences)
+        self.write_best_match(sorted_sequences, output, self.maximum_number_sequences)
 
     def check_structure_file(self):
         """Check if structure_file is a pdb or a cif and if not tell the user about it and stop the pipeline"""
