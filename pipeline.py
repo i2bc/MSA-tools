@@ -10,8 +10,6 @@ import check_complex
 dir_temp = Path("temp")
 dir_temp.mkdir(parents=True, exist_ok=True)
 
-dir_result = Path("result")
-dir_result.mkdir(parents=True, exist_ok=True)
 
 
 def string_to_bool(value):
@@ -58,6 +56,9 @@ def check_msa(input, output_directory):
         print("Wrong filetype")
     return fasta_msa
 
+
+dir_result = Path(args.o)
+dir_result.mkdir(parents=True, exist_ok=True)
 
 fasta_msa = check_msa(input_msa, dir_temp)
 print(f"fasta msa {fasta_msa}")
