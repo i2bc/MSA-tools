@@ -79,7 +79,9 @@ class r4s_multi:
         if self.complex:
             fasta_paths = ""
             if not self.split_identity:
-                self.run_hhfilter(self.msa_input, self.msa_hhfilter)
+                paired = os.path.join(self.temporary_directory, "paired.fasta")
+                self.remove_unpaired(self.msa_input, paired)
+                self.run_hhfilter(paired, self.msa_hhfilter)
                 self.get_best_match_from_fasta(self.msa_hhfilter, self.msa_filtered)
                 self.get_subsequence(self.msa_filtered)
                 fasta_paths = self.create_fasta(self.output_directory)
@@ -157,22 +159,29 @@ class r4s_multi:
 
         return sorted_by_match
 
-    def write_best_match(self, sequences, output_file, number_of_sequences):
+    def write_fasta(self, sequences, output_file):
         with open(output_file, "w") as f:
-            # Start at 0 to account for main sequence
-            counter = 0
             for sequence in sequences:
                 f.write(sequence["header"] + "\n")
                 f.write(sequence["sequence"] + "\n")
-                if counter == number_of_sequences:
-                    break
-                counter += 1
 
     def get_best_match_from_fasta(self, fasta, output):
         """get the closest sequences from the first sequence of a fasta and write them in a file"""
         sequences = self.parse_fasta(fasta)
         sorted_sequences = self.sort_by_best_match(sequences)
-        self.write_best_match(sorted_sequences, output, self.maximum_number_sequences)
+        best_sequences = sorted_sequences[: self.maximum_number_sequences]
+        self.write_fasta(best_sequences, output)
+
+    def remove_unpaired(self, fasta, output_file):
+        sequences = self.parse_fasta(fasta)
+        main_header = sequences[0]["header"]
+        main_header = main_header.split("\t")[0]
+        print(main_header)
+        for index, sequence in enumerate(sequences[1:]):
+            if main_header == sequence["header"]:
+                print(f"sequences = {index}")
+                self.write_fasta(sequences[:index], output_file)
+                break
 
     def check_structure_file(self):
         """Check if structure_file is a pdb or a cif and if not tell the user about it and stop the pipeline"""
