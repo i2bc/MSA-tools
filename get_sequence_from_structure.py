@@ -143,6 +143,6 @@ structure_file = args.i
 output = args.o
 array_chains = args.chains
 sequence = get_sequence_from_structure(
-    structure_file=structure_file, output=output, array_chains=None if not args.chains else [x.upper for x in args.chains]
+    structure_file=structure_file, output=output, array_chains=None if not args.chains else [x.upper() for x in args.chains]
 )
 sequence.run()
