@@ -610,6 +610,14 @@ class r4s_multi:
             f.seek(0)
             f.truncate()
             f.write(cleaned_file)
+    
+    def add_data(self, cif):
+        """Because PyMOL doesn't accept cif files without the data_ information"""
+        with open(cif, "r+") as f:
+            file = f.read()
+            f.seek(0)
+            f.truncate()
+            f.write('data_output\n'+file)        
 
     def create_cif_converge_diverge_r4s(self, output):
         """Create the a cif with the with setting the value of r4s in occupancy column"""
