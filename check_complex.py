@@ -11,14 +11,16 @@ from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.MMCIF2Dict import MMCIF2Dict
 from Bio.PDB.mmcifio import MMCIFIO
 
+import util_cif
+
 RATE4SITE = "rate4site"
 MAFFT = "mafft"
 HHFILTER = "hhfilter"
 
 # TODO: Delete when done with local testing
-RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
-MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
-HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
+# RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
+# MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
+# HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
 
 
 class r4s_multi:
@@ -61,6 +63,11 @@ class r4s_multi:
             converted_structure_file = prefix_structure_file + ".cif"
             pdb2cif.convert2cif(self.structure_file, converted_structure_file)
             self.structure_file = converted_structure_file
+
+        # Remove h2o and take the first model and first alternate location
+        clean_cif = os.path.join(self.output_directory, "cleaned_structure.cif")
+        util_cif.clean_cif(self.structure_file, clean_cif, None, None)
+        self.structure_file = clean_cif
 
     def setup_logging(self):
         FORMAT = "[%(asctime)s] - %(levelname)s - %(message)s"
