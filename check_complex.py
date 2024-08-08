@@ -654,3 +654,4 @@ class r4s_multi:
             io.set_dict(temp_dic)
             io.save(output)
         self.rna_cleaning(output)
+        self.add_data(output)
