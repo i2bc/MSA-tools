@@ -11,7 +11,6 @@ dir_temp = Path("temp")
 dir_temp.mkdir(parents=True, exist_ok=True)
 
 
-
 def string_to_bool(value):
     if value.lower() in {"false", "f", "no", "n", "0"}:
         return False
@@ -38,7 +37,7 @@ structure = args.s
 A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
 
 # TODO: delete
-A3M_CONVERTER = "./a3m_to_fasta.sh"
+# A3M_CONVERTER = "./a3m_to_fasta.sh"
 
 
 def check_msa(input, output_directory):
