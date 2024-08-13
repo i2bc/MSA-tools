@@ -99,7 +99,6 @@ class r4s_multi:
                 fasta_paths = self.create_fasta(self.output_directory)
 
                 for index in self.fasta_sequences:
-                    print(f"create fasta path: {fasta_paths}, index: {index}")
                     self.run_hhfilter(fasta_paths[index], fasta_paths[index])
                     self.get_best_match_from_fasta(fasta_paths[index], fasta_paths[index])
 
@@ -261,7 +260,6 @@ class r4s_multi:
                     sequence = ""
                     if not line.startswith("#"):
                         if line.startswith(">"):
-                            # TODO: change or remove the header (not always in multiple)
                             count_sequences += 1
                             header = stripped_line
                             self.fasta_sequences[index][count_sequences] = ""
