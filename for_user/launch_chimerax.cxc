@@ -2,7 +2,10 @@ alias check_interface show $1 cartoons; delete H; color $1 bychain; select $1/$2
 alias colour_occ color byattribute occupancy $1 palette white:yellow:orange:red range 0,100
 alias colour_bfact color byattribute bfactor $1 palette alphafold
 
-open output.cif
+open structure_output.cif
+hide surfaces
+hide atoms
+show cartoons
 colour_occ #1
 
 log html <h1>Colouring functions:</h1><ul><li><code><b>colour_occ #1</b></code>: colour by occupancy (i.e. conservation in this case)</li><li><code><b>colour_bfact #1</b></code>: colour by bfactor field (i.e. pLDDT if present)</li><li><code><b>check_interface #1 A B</b></code>: colour by chain & show contacts</li><li>Don't forget to play around with the "Presets" in the menu bar</li></ul>
