@@ -18,9 +18,9 @@ MAFFT = "mafft"
 HHFILTER = "hhfilter"
 
 # TODO: Delete when done with local testing
-# RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
-# MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
-# HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
+RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
+MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
+HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
 
 
 class r4s_multi:
@@ -85,6 +85,7 @@ class r4s_multi:
         self.check_fasta()
         if self.complex:
             fasta_paths = ""
+            # Filtering
             if not self.split_identity:
                 paired = os.path.join(self.temporary_directory, "paired.fasta")
                 self.remove_unpaired(self.msa_input, paired)
@@ -180,6 +181,7 @@ class r4s_multi:
         self.write_fasta(best_sequences, output)
 
     def remove_unpaired(self, fasta, output_file):
+        """remove unpaired sequences from a fasta which consist of sequences after we see again the header of the main sequence"""
         sequences = self.parse_fasta(fasta)
         main_header = sequences[0]["header"]
         main_header = main_header.split("\t")[0]
@@ -255,16 +257,13 @@ class r4s_multi:
                 self.fasta_sequences[index] = {}
                 self.fasta_sequences[index]["count_sequences"] = []
                 for line in lines:
-
                     stripped_line = line.strip()
                     sequence = ""
                     if not line.startswith("#"):
                         if line.startswith(">"):
                             # TODO: change or remove the header (not always in multiple)
                             count_sequences += 1
-                            header = stripped_line[1:]
-                            header = header.split("\t")
-                            # current_header = header[index]
+                            header = stripped_line
                             self.fasta_sequences[index][count_sequences] = ""
 
                         else:
@@ -273,6 +272,7 @@ class r4s_multi:
                             self.fasta_sequences[index][count_sequences] = {}
                             self.fasta_sequences[index][count_sequences]["sequence"] = sequence
                             self.fasta_sequences[index][count_sequences]["occurrence"] = tup[1]
+                            self.fasta_sequences[index][count_sequences]["header"] = header
                 current_start_position = length
 
     def create_fasta(self, output_directory):
@@ -287,7 +287,9 @@ class r4s_multi:
             self.fasta_sequences[index]["fasta"] = fasta
             with open(fasta_output, "w") as f:
                 for count_sequences in self.fasta_sequences[index]["count_sequences"]:
-                    f.write(f">{count_sequences}\n{self.fasta_sequences[index][count_sequences]['sequence']}\n")
+                    header = self.fasta_sequences[index][count_sequences]["header"]
+                    sequence = self.fasta_sequences[index][count_sequences]["sequence"]
+                    f.write(f"{header}\n{sequence}\n")
             count += 1
             array_path.append(fasta_output)
         return array_path
@@ -617,14 +619,14 @@ class r4s_multi:
             f.seek(0)
             f.truncate()
             f.write(cleaned_file)
-    
+
     def add_data(self, cif):
         """Because PyMOL doesn't accept cif files without the data_ information"""
         with open(cif, "r+") as f:
             file = f.read()
             f.seek(0)
             f.truncate()
-            f.write('data_output\n'+file)        
+            f.write("data_output\n" + file)
 
     def create_cif_converge_diverge_r4s(self, output):
         """Create the a cif with the with setting the value of r4s in occupancy column"""

@@ -37,7 +37,7 @@ structure = args.s
 A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
 
 # TODO: delete
-# A3M_CONVERTER = "./a3m_to_fasta.sh"
+A3M_CONVERTER = "./a3m_to_fasta.sh"
 
 
 def check_msa(input, output_directory):
