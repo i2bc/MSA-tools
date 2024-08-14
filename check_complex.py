@@ -8,7 +8,6 @@ import logging
 import tempfile
 import pdb2cif
 from Bio.PDB.MMCIFParser import MMCIFParser
-from Bio.PDB.MMCIF2Dict import MMCIF2Dict
 from Bio.PDB.mmcifio import MMCIFIO
 
 import util_cif
@@ -18,9 +17,9 @@ MAFFT = "mafft"
 HHFILTER = "hhfilter"
 
 # TODO: Delete when done with local testing
-RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
-MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
-HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
+# RATE4SITE = "~/programmation/stage/script_msa_tools/tools/bin/rate4site"
+# MAFFT = "~/programmation/stage/script_msa_tools/tools/bin/mafft"
+# HHFILTER = "~/programmation/stage/script_msa_tools/hhsuite/bin/hhfilter"
 
 
 class r4s_multi:
@@ -37,6 +36,7 @@ class r4s_multi:
         maximum_percentage_identity=80,
         maximum_number_sequences=100,
         split_identity=True,
+        multiple_msa=False,
     ):
         self.msa_input = msa_input
         self.structure_file = structure_file
@@ -51,6 +51,7 @@ class r4s_multi:
         self.maximum_percentage_identity = maximum_percentage_identity
         self.maximum_number_sequences = maximum_number_sequences
         self.split_identity = split_identity
+        self.multiple_msa = multiple_msa
         self.dic_score = {}
         self.conservation_data = {}
         self.mafft_result = {}
@@ -81,8 +82,10 @@ class r4s_multi:
         self.logger.addHandler(fh_detailed)
 
     def run(self):
-
-        self.check_fasta()
+        if self.multiple_msa:
+            self.complex = True
+        else:
+            self.check_fasta()
         if self.complex:
             fasta_paths = ""
             # Filtering
@@ -94,8 +97,14 @@ class r4s_multi:
                 self.get_subsequence(self.msa_filtered)
                 fasta_paths = self.create_fasta(self.output_directory)
             else:
-                self.make_fasta_seq_one_line(self.msa_input)
-                self.get_subsequence(self.msa_input)
+                if self.multiple_msa:
+                    for msa in self.msa_input:
+                        print(f"msa: {self.msa_input}")
+                        self.make_fasta_seq_one_line(msa)
+                    self.get_sequence_from_multi_fasta(self.msa_input)
+                else:
+                    self.make_fasta_seq_one_line(self.msa_input)
+                    self.get_subsequence(self.msa_input)
                 fasta_paths = self.create_fasta(self.output_directory)
 
                 for index in self.fasta_sequences:
@@ -272,6 +281,35 @@ class r4s_multi:
                             self.fasta_sequences[index][count_sequences]["occurrence"] = tup[1]
                             self.fasta_sequences[index][count_sequences]["header"] = header
                 current_start_position = length
+
+    def get_sequence_from_multi_fasta(self, array_fasta):
+        """get all the fasta sequences from multiple fasta"""
+        self.fasta_sequences = {}
+        # dont forget to convert to one liner before
+        for index, fasta in enumerate(array_fasta):
+            count_sequences = 0
+            with open(fasta, "r") as f:
+                lines = f.readlines()
+                count_sequences = 0
+                self.fasta_sequences[index] = {}
+                self.fasta_sequences[index]["count_sequences"] = []
+                for line in lines:
+                    stripped_line = line.strip()
+                    sequence = ""
+                    if line.startswith(">"):
+                        count_sequences += 1
+                        header = stripped_line
+                        self.fasta_sequences[index][count_sequences] = ""
+
+                    else:
+                        sequence = stripped_line
+                        # occurrence set to 1 by default
+                        occurrence = 1
+                        self.fasta_sequences[index]["count_sequences"].append(count_sequences)
+                        self.fasta_sequences[index][count_sequences] = {}
+                        self.fasta_sequences[index][count_sequences]["sequence"] = sequence
+                        self.fasta_sequences[index][count_sequences]["occurrence"] = occurrence
+                        self.fasta_sequences[index][count_sequences]["header"] = header
 
     def create_fasta(self, output_directory):
         """Create a fasta with the subsequence of each protein contained in the original fasta,
