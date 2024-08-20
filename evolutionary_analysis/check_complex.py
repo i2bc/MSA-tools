@@ -76,10 +76,18 @@ class r4s_multi:
         logging.basicConfig(format=FORMAT, datefmt=DATE_FORMAT)
         self.logger = logging.getLogger("Conservation Pipeline")
         self.logger.setLevel(logging.INFO)
+
         fh_detailed = logging.FileHandler("rate4site.log")
         fh_detailed.setLevel(logging.INFO)
         fh_detailed.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
         self.logger.addHandler(fh_detailed)
+
+        # Create a stream handler for logging to the console
+        ch = logging.StreamHandler(stream=sys.stdout)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(logging.Formatter(fmt=FORMAT, datefmt=DATE_FORMAT))
+        self.logger.addHandler(ch)
+
 
     def run(self):
         if self.multiple_msa:
@@ -99,7 +107,7 @@ class r4s_multi:
             else:
                 if self.multiple_msa:
                     for msa in self.msa_input:
-                        print(f"msa: {self.msa_input}")
+                        print(f"msa: {msa}")
                         self.make_fasta_seq_one_line(msa)
                     self.get_sequence_from_multi_fasta(self.msa_input)
                 else:
@@ -555,8 +563,14 @@ class r4s_multi:
             if percentage_identity < MINIMUM_PERCENTAGE_IDENTITY:
                 break
             if tuple(index,occurrence) not in seen['msa'] and chain not in seen['chain']:
-                percentage = {'max': percentage_identity, 'index': index, 'chain': chain, 'occurence': occurrence}
-                self.logger.info(f"Match found between MSA sequence n°{index+1} (occurrence n°{occurrence+1}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
+                percentage = {'max': percentage_identity, 'index': index, 'chain': chain, 'occurrence': occurrence}
+                header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
+                header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
+                self.logger.info(f"Match found between MSA sequence n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
+                self.logger.info(f"> MSA n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                self.logger.info(self.mafft_result[index][chain]["sequences"][header_r4s])
+                self.logger.info(f"> protein chain {chain} in structure")
+                self.logger.info(self.mafft_result[index][chain]["sequences"][header_cif])
                 self.link_sequence_chain.append(percentage)
                 seen['msa'].add(tuple(index,occurrence))
                 seen['chain'].add(chain)
@@ -564,10 +578,15 @@ class r4s_multi:
         for index in self.mafft_result:
             for occurrence in range(int(self.dic_score[index]["occurrence"])):
                 if tuple(index,occurrence) not in seen['msa']:
-                    self.logger.info(f"No match found for MSA sequence n°{index+1} (occurrence n°{occurrence+1})")
+                    self.logger.info(f"No match found for MSA sequence n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                    self.logger.info(f"> MSA n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                    self.logger.info(self.mafft_result[index][chains[0]]["sequences"][self.mafft_result[index][chains[0]]["sequences"]["order"][0]].replace("-",""))
+        index = list(self.mafft_result.keys())[0]
         for chain in chains:
             if chain not in seen['chain']:
                 self.logger.info(f"No match found for protein chain {chain} in given structure")
+                self.logger.info(f"> protein chain {chain}")
+                self.logger.info(self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][1]].replace("-",""))
 
         # e.g. self.link_sequence_chain = [{'max': 76.47058823529412, 'index': 0, 'chain': 'A', 'occurence': 0}]
 
