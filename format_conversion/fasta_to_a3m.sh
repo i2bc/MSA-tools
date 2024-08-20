@@ -2,7 +2,7 @@
 
 # READ CONFIG FILE
 script_dir=$(dirname $(dirname $(readlink -f "$0")))
-source $script_dir/common.sh
+pathReformat=$($script_dir/common.sh $script_dir/config.yaml pathReformat)
 
 OPTSTRING=":i:o:"
 
