@@ -67,8 +67,8 @@ class r4s_multi:
 
         # Remove h2o and take the first model and first alternate location
         clean_cif = os.path.join(self.output_directory, "cleaned_structure.cif")
-        util_cif.clean_cif(self.structure_file, clean_cif, None, None)
-        self.structure_file = clean_cif
+        util_cif.clean_cif(self.structure_file, self.structure_file, None, None)
+        #self.structure_file = clean_cif
 
     def setup_logging(self):
         FORMAT = "[%(asctime)s] - %(levelname)s - %(message)s"
@@ -214,7 +214,7 @@ class r4s_multi:
         self.complex = False
         with open(self.msa_input, "r") as f:
             firstline = f.readline()
-            if firstline.startswith("#"):
+            if firstline.startswith("#") and re.search('#[\s]*[0-9,]+',firstline):
                 self.logger.info("Fasta with multiple sequences")
                 self.complex = True
                 firstline_no_comma = firstline[1:]

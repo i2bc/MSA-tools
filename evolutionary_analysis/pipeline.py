@@ -82,10 +82,9 @@ def check_msa(input, output_directory):
             else:
                 fasta_msa = os.path.join(output_directory, str(Path(myinput).stem) + ".fasta")
                 os.system(A3M_CONVERTER + f" -i {myinput} -o {fasta_msa}")
-        fasta_msas.append(fasta_msa)
-
-    else:
-        print("Wrong filetype")
+            fasta_msas.append(fasta_msa)
+        else:
+            print("Wrong filetype")
     return fasta_msas[0] if (not isinstance(input,list)) or (isinstance(input,list) and len(input)==1) else fasta_msas
 
 
