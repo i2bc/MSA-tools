@@ -62,7 +62,7 @@ args = parser.parse_args()
 input_msa = args.m
 
 structure = args.s
-A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
+A3M_CONVERTER = os.path.join(os.path.dirname(os.path.abspath(__file__)),"a3m_to_fasta.sh")
 
 # TODO: delete
 # A3M_CONVERTER = "./a3m_to_fasta.sh"
@@ -70,18 +70,23 @@ A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
 
 def check_msa(input, output_directory):
     """check if input is fasta or a3m and convert it if it is the case"""
-    fasta_msa = ""
-    valid_extension = [".fasta", ".fa", ".a3m"]
-    if Path(input).is_file() and Path(input).suffix in valid_extension:
-        if Path(input).suffix == ".fasta" or Path(input).suffix == ".fa":
-            fasta_msa = input
-        else:
-            fasta_msa = os.path.join(output_directory, str(Path(input).stem) + ".fasta")
-            os.system(A3M_CONVERTER + f" -i {input} -o {fasta_msa}")
+    if not isinstance(input,list):
+        input = [input]
+    fasta_msas = []
+    for myinput in input:
+        fasta_msa = ""
+        valid_extension = [".fasta", ".fa", ".a3m"]
+        if Path(myinput).is_file() and Path(myinput).suffix in valid_extension:
+            if Path(myinput).suffix == ".fasta" or Path(myinput).suffix == ".fa":
+                fasta_msa = myinput
+            else:
+                fasta_msa = os.path.join(output_directory, str(Path(myinput).stem) + ".fasta")
+                os.system(A3M_CONVERTER + f" -i {myinput} -o {fasta_msa}")
+        fasta_msas.append(fasta_msa)
 
     else:
         print("Wrong filetype")
-    return fasta_msa
+    return fasta_msas[0] if (not isinstance(input,list)) or (isinstance(input,list) and len(input)==1) else fasta_msas
 
 
 dir_result = Path(args.o)

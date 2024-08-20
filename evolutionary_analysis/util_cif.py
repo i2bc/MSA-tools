@@ -1,5 +1,20 @@
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.mmcifio import MMCIFIO
+from Bio.PDB import Select
+
+
+# https://biopython.org/wiki/Remove_PDB_disordered_atoms
+class NotDisordered(Select):
+
+    def __init__(self, alt_label="A"):
+        self.alt_label = alt_label
+
+    def accept_atom(self, atom):
+        if not atom.is_disordered() or atom.get_altloc() == self.alt_label:
+            atom.set_altloc(" ")  # Eliminate alt location ID before output.
+            return True
+        else:
+            return False
 
 
 def parse_cif(cif):
@@ -28,27 +43,17 @@ def remove_residue(model, residue_name="HOH"):
             chain.detach_child(residue_id)
 
 
-def choose_alternative_atom(model, alternative=None):
-    """only keep the atoms with the specified alternative"""
-    if not alternative:
-        for atom in model.get_atoms():
-            if atom.is_disordered():
-                altlocs = atom.disordered_get_id_list()
-                for index in range(1, len(altlocs)):
-                    atom.disordered_remove(altlocs[index])
-    else:
-        for atom in model.get_atoms():
-            if atom.is_disordered():
-                altlocs = atom.disordered_get_id_list()
-                for alt in altlocs:
-                    if alt != alternative:
-                        atom.disordered_remove(alt)
+def choose_alternative_atom(model):
+    """find the alternative to keep as it might not always be A, B etc."""
+    for atom in model.get_atoms():
+        if atom.is_disordered():
+            return atom.get_altloc()
+    return None
 
-
-def write_cif(model, output_file):
+def write_cif(model, output_file, alt_label):
     io = MMCIFIO()
     io.set_structure(model)
-    io.save(output_file)
+    io.save(output_file, select=NotDisordered(alt_label))
 
 
 def clean_cif(cif, output_cif, model=None, alt_label=None):
@@ -58,6 +63,7 @@ def clean_cif(cif, output_cif, model=None, alt_label=None):
 
     remove_residue(model, "HOH")
 
-    choose_alternative_atom(model, alt_label)
+    if not alt_label:
+        alt_label = choose_alternative_atom(model)
 
-    write_cif(model, output_cif)
+    write_cif(model, output_cif, alt_label)
