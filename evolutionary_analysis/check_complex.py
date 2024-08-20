@@ -503,7 +503,7 @@ class r4s_multi:
 
     def assign_sequence_cif_fasta(self):
         pdb_sequences = self.extract_sequence_cif(self.array_chains)
-        print(f"array chains: {self.array_chains}")
+        if self.array_chains: self.logger.info(f"User-specified chains: {self.array_chains}")
         for index in self.dic_score:
             sequence = self.dic_score[index]["sequence"]
 
@@ -521,6 +521,7 @@ class r4s_multi:
                 self.mafft_result[index][chain] = {}
                 self.mafft_result[index][chain]["index_cif"] = pdb_sequences[chain]["order"]
                 self.mafft_result[index][chain]["sequences"] = self.get_sequence_from_alignment(output_mafft.name)
+
         self.compare_mafft_alignment()
 
     def compare_mafft_alignment(self):
@@ -529,6 +530,8 @@ class r4s_multi:
         pdb_sequences = self.extract_sequence_cif(self.array_chains)
         chains = pdb_sequences["chain"]
         self.link_sequence_chain = []
+
+        all_pairs = []
         for index in self.mafft_result:
             for occurrence in range(int(self.dic_score[index]["occurrence"])):
                 percentage = {
@@ -544,21 +547,36 @@ class r4s_multi:
                         self.mafft_result[index][chain]["sequences"][header_r4s],
                         self.mafft_result[index][chain]["sequences"][header_cif],
                     )
-                    if percentage_identity > percentage["max"]:
-                        percentage["max"] = percentage_identity
-                        percentage["index"] = index
-                        percentage["chain"] = chain
-                        percentage["occurrence"] = occurrence
-                if percentage["max"] > MINIMUM_PERCENTAGE_IDENTITY:
-                    self.link_sequence_chain.append(percentage)
-                    chains.remove(percentage["chain"])
+                    all_pairs.append([index,occurrence,chain,percentage_identity])
+        
+        # e.g. all_pairs = [[0, 0, 'A', 76.47058823529412], [1, 0, 'A', 64.85148514851485]]
+        seen = {'msa':set(),'chain':set()}
+        for index, occurrence, chain, percentage_identity in sorted(all_pairs,key=lambda x: x[-1],reverse=True):
+            if percentage_identity < MINIMUM_PERCENTAGE_IDENTITY:
+                break
+            if tuple(index,occurrence) not in seen['msa'] and chain not in seen['chain']:
+                percentage = {'max': percentage_identity, 'index': index, 'chain': chain, 'occurence': occurrence}
+                self.logger.info(f"Match found between MSA sequence n°{index+1} (occurrence n°{occurrence+1}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
+                self.link_sequence_chain.append(percentage)
+                seen['msa'].add(tuple(index,occurrence))
+                seen['chain'].add(chain)
+
+        for index in self.mafft_result:
+            for occurrence in range(int(self.dic_score[index]["occurrence"])):
+                if tuple(index,occurrence) not in seen['msa']:
+                    self.logger.info(f"No match found for MSA sequence n°{index+1} (occurrence n°{occurrence+1})")
+        for chain in chains:
+            if chain not in seen['chain']:
+                self.logger.info(f"No match found for protein chain {chain} in given structure")
+
+        # e.g. self.link_sequence_chain = [{'max': 76.47058823529412, 'index': 0, 'chain': 'A', 'occurence': 0}]
 
     def compare_sequences(self, seq1, seq2):
         """Compare two sequences and return the percentage of identity between both"""
         if len(seq1) != len(seq2):
             raise ValueError("Sequences must be of the same length")
 
-        matches = sum(1 for a, b in zip(seq1, seq2) if a == b)
+        matches = sum(1 for a, b in zip(seq1, seq2) if a == b and a != "-")
 
         percentage_similarity = (matches / len(seq1.replace("-", ""))) * 100
 
