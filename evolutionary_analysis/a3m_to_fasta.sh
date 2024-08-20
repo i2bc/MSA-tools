@@ -1,8 +1,11 @@
 #! /bin/sh
 
+# READ CONFIG FILE
+script_dir=$(dirname $(dirname $(readlink -f "$0")))
+source $script_dir/common.sh
+
 OPTSTRING=":i:o:"
-pathReformat=/data/work/I2BC/hugo.pointier/msa_tools/tools/reformat.pl
-pathReformat=~/programmation/stage/script_msa_tools/hhsuite/scripts/reformat.pl
+
 while getopts ${OPTSTRING} opt; do
   case "${opt}" in
     i) 
