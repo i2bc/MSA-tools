@@ -21,14 +21,41 @@ def string_to_bool(value):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", required=True, nargs="+", help="msa file to give (either .fasta or .a3m)", type=str)
-parser.add_argument("-s", required=True, help="structure file (either .pdb or .cif)", type=str)
-parser.add_argument("-i", required=True, help="maximum percentage identity between sequences to keep", type=int)
-parser.add_argument("-f", required=True, help="final number of sequences to keep", type=int)
+parser.add_argument(
+    "-m",
+    required=True,
+    nargs="+",
+    help="msa file to give (either .fasta or .a3m)",
+    type=str,
+)
+parser.add_argument(
+    "-s", required=True, help="structure file (either .pdb or .cif)", type=str
+)
+parser.add_argument(
+    "-i",
+    required=True,
+    help="maximum percentage identity between sequences to keep",
+    type=int,
+)
+parser.add_argument(
+    "-f", required=True, help="final number of sequences to keep", type=int
+)
 parser.add_argument("-o", required=True, help="output directory", type=str)
-parser.add_argument("--split", required=True, help="split fasta before filtering sequences", type=string_to_bool)
-parser.add_argument("--chains", required=False, nargs="+", help="array of chain wanted", type=str)
-parser.add_argument("--multiple", required=True, help="if there is multiple msa file or not", type=string_to_bool)
+parser.add_argument(
+    "--split",
+    required=True,
+    help="split fasta before filtering sequences",
+    type=string_to_bool,
+)
+parser.add_argument(
+    "--chains", required=False, nargs="+", help="array of chain wanted", type=str
+)
+parser.add_argument(
+    "--multiple",
+    required=True,
+    help="if there is multiple msa file or not",
+    type=string_to_bool,
+)
 
 args = parser.parse_args()
 
@@ -44,9 +71,9 @@ A3M_CONVERTER = "/data/work/I2BC/hugo.pointier/msa_tools/script/a3m_to_fasta.sh"
 def check_msa(input, output_directory):
     """check if input is fasta or a3m and convert it if it is the case"""
     fasta_msa = ""
-    valid_extension = [".fasta", ".a3m"]
+    valid_extension = [".fasta", ".fa", ".a3m"]
     if Path(input).is_file() and Path(input).suffix in valid_extension:
-        if Path(input).suffix == ".fasta":
+        if Path(input).suffix == ".fasta" or Path(input).suffix == ".fa":
             fasta_msa = input
         else:
             fasta_msa = os.path.join(output_directory, str(Path(input).stem) + ".fasta")
