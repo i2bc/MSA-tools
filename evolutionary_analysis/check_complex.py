@@ -562,24 +562,24 @@ class r4s_multi:
         for index, occurrence, chain, percentage_identity in sorted(all_pairs,key=lambda x: x[-1],reverse=True):
             if percentage_identity < MINIMUM_PERCENTAGE_IDENTITY:
                 break
-            if tuple(index,occurrence) not in seen['msa'] and chain not in seen['chain']:
+            if (index,occurrence) not in seen['msa'] and chain not in seen['chain']:
                 percentage = {'max': percentage_identity, 'index': index, 'chain': chain, 'occurrence': occurrence}
                 header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
                 header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
-                self.logger.info(f"Match found between MSA sequence n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
-                self.logger.info(f"> MSA n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                self.logger.info(f"Match found between MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
+                self.logger.info(f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
                 self.logger.info(self.mafft_result[index][chain]["sequences"][header_r4s])
                 self.logger.info(f"> protein chain {chain} in structure")
                 self.logger.info(self.mafft_result[index][chain]["sequences"][header_cif])
                 self.link_sequence_chain.append(percentage)
-                seen['msa'].add(tuple(index,occurrence))
+                seen['msa'].add((index,occurrence))
                 seen['chain'].add(chain)
 
         for index in self.mafft_result:
             for occurrence in range(int(self.dic_score[index]["occurrence"])):
-                if tuple(index,occurrence) not in seen['msa']:
-                    self.logger.info(f"No match found for MSA sequence n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
-                    self.logger.info(f"> MSA n°{index+1} (occurrence n°{occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                if (index,occurrence) not in seen['msa']:
+                    self.logger.info(f"No match found for MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
+                    self.logger.info(f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
                     self.logger.info(self.mafft_result[index][chains[0]]["sequences"][self.mafft_result[index][chains[0]]["sequences"]["order"][0]].replace("-",""))
         index = list(self.mafft_result.keys())[0]
         for chain in chains:
