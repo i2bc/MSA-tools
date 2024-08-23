@@ -1,2 +1,4 @@
-# Possible improvements:
-- [ ] when several r4s to do, parallelise execution?
+# Scripts for MSA-tools
+
+https://bioi2.i2bc.paris-saclay.fr/django/msa-tools
+
