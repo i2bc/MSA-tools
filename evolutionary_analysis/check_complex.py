@@ -58,6 +58,7 @@ class r4s_multi:
         self.conservation_data = {}
         self.mafft_result = {}
         self.dict_r4s_cif_mapping = {}
+        self.match_log = ""
 
         self.setup_logging()
         self.check_structure_file()
@@ -143,6 +144,9 @@ class r4s_multi:
                 self.align_pdb_r4s(group["index"], group["occurrence"], group["chain"])
             structure_output = os.path.join(self.output_directory, "structure_output.cif")
             self.create_cif_converge_diverge_r4s(structure_output)
+
+        with open(os.path.join(self.output_directory, "match_log.txt"), "w") as f:
+            f.write(self.match_log)
 
     def run_hhfilter(self, input, output):
         os.system(f"{HHFILTER} -i {input} -o {output} -id {self.maximum_percentage_identity}")
@@ -540,6 +544,7 @@ class r4s_multi:
         pdb_sequences = self.extract_sequence_cif(self.array_chains)
         chains = pdb_sequences["chain"]
         self.link_sequence_chain = []
+        self.match_log = ""
 
         all_pairs = []
         for index in self.mafft_result:
@@ -568,11 +573,19 @@ class r4s_multi:
                 percentage = {'max': percentage_identity, 'index': index, 'chain': chain, 'occurrence': occurrence}
                 header_r4s = self.mafft_result[index][chain]["sequences"]["order"][0]
                 header_cif = self.mafft_result[index][chain]["sequences"]["order"][1]
+
                 self.logger.info(f"Match found between MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity")
                 self.logger.info(f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
                 self.logger.info(self.mafft_result[index][chain]["sequences"][header_r4s])
                 self.logger.info(f"> protein chain {chain} in structure")
                 self.logger.info(self.mafft_result[index][chain]["sequences"][header_cif])
+
+                self.match_log += f"Match found between MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])}) and protein chain {chain} in structure with {round(percentage_identity,0)}% identity\n"
+                self.match_log += f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})\n"
+                self.match_log += self.mafft_result[index][chain]["sequences"][header_r4s] + '\n'
+                self.match_log += f"> protein chain {chain} in structure\n"
+                self.match_log += self.mafft_result[index][chain]["sequences"][header_cif] + '\n'
+
                 self.link_sequence_chain.append(percentage)
                 seen['msa'].add((index,occurrence))
                 seen['chain'].add(chain)
@@ -583,12 +596,21 @@ class r4s_multi:
                     self.logger.info(f"No match found for MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
                     self.logger.info(f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})")
                     self.logger.info(self.mafft_result[index][chains[0]]["sequences"][self.mafft_result[index][chains[0]]["sequences"]["order"][0]].replace("-",""))
+
+                    self.match_log += f"No match found for MSA sequence {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})\n"
+                    self.match_log += f"> MSA {index+1} (occurrence {occurrence+1}/{int(self.dic_score[index]['occurrence'])})\n"
+                    self.match_log += self.mafft_result[index][chains[0]]["sequences"][self.mafft_result[index][chains[0]]["sequences"]["order"][0]].replace("-","") + "\n"
+
         index = list(self.mafft_result.keys())[0]
         for chain in chains:
             if chain not in seen['chain']:
                 self.logger.info(f"No match found for protein chain {chain} in given structure")
                 self.logger.info(f"> protein chain {chain}")
                 self.logger.info(self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][1]].replace("-",""))
+
+                self.match_log += f"No match found for protein chain {chain} in given structure\n"
+                self.match_log += f"> protein chain {chain}\n"
+                self.match_log += self.mafft_result[index][chain]["sequences"][self.mafft_result[index][chain]["sequences"]["order"][1]].replace("-","") + "\n"
 
         # e.g. self.link_sequence_chain = [{'max': 76.47058823529412, 'index': 0, 'chain': 'A', 'occurence': 0}]
 
