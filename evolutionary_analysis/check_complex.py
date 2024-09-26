@@ -37,6 +37,7 @@ class r4s_multi:
         maximum_number_sequences=100,
         split_identity=True,
         multiple_msa=False,
+        field="occupancy", #occupancy or bfactor
     ):
         self.msa_input = msa_input
         self.structure_file = structure_file
@@ -52,6 +53,7 @@ class r4s_multi:
         self.maximum_number_sequences = maximum_number_sequences
         self.split_identity = split_identity
         self.multiple_msa = multiple_msa
+        self.field = field
         self.dic_score = {}
         self.conservation_data = {}
         self.mafft_result = {}
@@ -702,10 +704,11 @@ class r4s_multi:
             f.write("data_output\n" + file)
 
     def create_cif_converge_diverge_r4s(self, output):
-        """Create the a cif with the with setting the value of r4s in occupancy column"""
+        """Create the a cif with the with setting the value of r4s in occupancy/bfactor column"""
         for residue in self.structure.get_residues():
             for atom in residue.get_atoms():
-                atom.set_occupancy(0)
+                if self.field == "occupancy": atom.set_occupancy(0)
+                if self.field == "bfactor": atom.set_bfactor(0)
 
         for index in self.dict_r4s_cif_mapping:
             for occurrence in self.dict_r4s_cif_mapping[index]:
@@ -715,9 +718,14 @@ class r4s_multi:
                         residue_number = residue.get_id()[1]
                         if residue_number in self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"]:
                             for atom in residue.get_atoms():
-                                atom.set_occupancy(
-                                    self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"][residue_number]
-                                )
+                                if self.field == "occupancy":
+                                    atom.set_occupancy(
+                                        self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"][residue_number]
+                                    )
+                                if self.field == "bfactor":
+                                    atom.set_bfactor(
+                                        self.dict_r4s_cif_mapping[index][occurrence][chain]["bin"][residue_number]
+                                    )
 
         io = MMCIFIO()
         io.set_structure(self.structure)

@@ -56,6 +56,13 @@ parser.add_argument(
     help="if there is multiple msa file or not",
     type=string_to_bool,
 )
+parser.add_argument(
+    "--field",
+    required=False,
+    help="occupancy / bfactor => in which column should the conservation be added",
+    type=str,
+    default="occupancy",
+)
 
 args = parser.parse_args()
 
@@ -108,5 +115,6 @@ obj = check_complex.r4s_multi(
     maximum_number_sequences=args.f,
     split_identity=args.split,
     multiple_msa=args.multiple,
+    field=args.field,
 )
 obj.run()
