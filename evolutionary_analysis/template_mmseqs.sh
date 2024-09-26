@@ -99,4 +99,6 @@ done
 # write log to file
 echo "[$(date '+%F %T')] ...done!" >> $PROGRESSLOG 
 
-qsub -l mem=8Gb -N msa_tools_srv -q common -j oe -o $LOGDIR/ $JOBSCRIPT > $JOBIDFILE
+if [[ $JOBSCRIPT ]]; then
+  qsub -l mem=8Gb -N msa_tools_srv -q common -j oe -o $LOGDIR/ $JOBSCRIPT > $JOBIDFILE
+fi
