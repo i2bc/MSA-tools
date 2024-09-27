@@ -107,6 +107,9 @@ class get_sequence_from_structure:
                 if name_chain not in chains:
                     continue
 
+            if name_chain in dic_sequence["chain"]:
+                continue
+
             dic_sequence["chain"].append(name_chain)
             dic_sequence[name_chain] = {}
             dic_sequence[name_chain]["order"] = []
